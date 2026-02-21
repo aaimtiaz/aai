@@ -67,17 +67,17 @@
   </main>
 
   <footer>
-    <p>&copy; <span id="current-year"></span> Ahmad Al-Imtiaz | Last updated: <span id="last-updated"></span></p>
+    <p>&copy; Ahmad Al-Imtiaz | Last updated: <span id="last-updated"></span></p>
     
     <script>
-      // 1. Automate the Copyright Year
-      document.getElementById('current-year').textContent = new Date().getFullYear();
-
-      // 2. Automate the Last Modified Date
+      // Grab the last modified date of the file
       const modifiedDate = new Date(document.lastModified);
+      
+      // Format it beautifully (e.g., "February 21, 2026")
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       const formattedDate = modifiedDate.toLocaleDateString('en-US', options);
       
+      // Inject it into the span above
       document.getElementById('last-updated').textContent = formattedDate;
     </script>
   </footer>
