@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ahmad Al-Imtiaz</title>
+  <link rel="icon" type="image/png" href="assets/images/favicon.png" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/responsive.css" />
+
+</head>
+<body>
+  <header>
+    <h1>Ahmad Al-Imtiaz</h1>
+    <p>Prospective Graduate Student | Observational Astrophysics</p>
+    <nav>
+      <a href="assets/pdfs/Curriculum Vitae_Ahmad Al-Imtiaz.pdf" target="_blank">Curriculum Vitae</a>
+      <a href="research.html">Research</a>
+      <a href="teaching.html">Teaching</a>
+      <a href="outreach.html">Outreach</a>
+      <a href="writings.html">Writings</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <img src="assets/images/profile.jpg" alt="Ahmad Al-Imtiaz" />
+      <h2>Hi...!!!</h2>
+      <p>
+        I'm Ahmad Al-Imtiaz — a prospective Ph.D. student in astrophysics with a passion for exploring the universe through observations. I earned my B.Sc. and M.Sc. in Physics
+        from Shahjalal University of Science and Technology (SUST), Bangladesh, and I am currently working as a Graduate Research Assistant at the Center for Astronomy, Space
+        Science and Astrophysics at Independent University, Bangladesh. Previously, I worked as a Lecturer at Daffodil International University and as an Assistant Teacher of
+        Science at Reaz Public School in Dhaka, Bangladesh.
+      </p>
+
+      <p>
+        My research focuses on the internal structure, chemical composition, and evolution of galaxies, primarily leveraging strong gravitational lensing. I have hands-on experience
+        processing imaging data from HST, JWST, and Gemini/GSAOI, alongside spectroscopic data from Keck/MOSFIRE and JWST/IFU. My analytical toolkit includes modeling complex lensing
+        systems using Lenstronomy and performing Spectral Energy Distribution (SED) fitting with ALF (Absorption Line Fitter) and Dense Basis.
+      </p>
+
+      <p>
+        My recent joint first-author publication in Astronomy & Astrophysics (July 2025) investigates the correlation between the local environment and the internal structure of
+        massive elliptical galaxies. Currently, my ongoing projects include analyzing the chemical composition of the lensed quiescent galaxy AGEL0014 and studying the stellar
+        populations of the strongly lensed Sparkler galaxy.
+      </p>
+
+      <p>
+        Beyond academics, I have attended several international workshops and schools in astronomy and astrophysics, which have strengthened my skills as both a researcher
+        and an educator. I am passionate about science communication and outreach — particularly inspiring young students to explore the wonders of the night sky.
+      </p>
+
+      <p>
+        Outside of academics, I love traveling — especially to mountains and green places — and enjoy cycling as a way to both explore and stay physically active. This website is
+        a window into my academic journey, research, teaching, travels, and personal writings. Feel free to explore!
+      </p>
+    </section>
+
+    <!-- Contact Information Section -->
+    <section id="contact">
+      <h2>Contact Information</h2>
+      <p>Email: <a href="mailto:ahmadal.imtiaz@gmail.com">ahmadal.imtiaz@gmail.com</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; Ahmad Al-Imtiaz | Last updated: <span id="last-updated"></span></p>
+    
+    <script>
+      // Grab the last modified date of the file
+      const modifiedDate = new Date(document.lastModified);
+      
+      // Format it beautifully (e.g., "February 21, 2026")
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      const formattedDate = modifiedDate.toLocaleDateString('en-US', options);
+      
+      // Inject it into the span above
+      document.getElementById('last-updated').textContent = formattedDate;
+    </script>
+  </footer>
+  
+</body>
+</html>

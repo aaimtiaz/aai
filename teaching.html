@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Teaching | Ahmad Al-Imtiaz</title>
+  <link rel="icon" type="image/png" href="assets/images/favicon.png" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/responsive.css" />
+
+</head>
+<body>
+  <header>
+    <h1>Teaching</h1>
+    <p>Ahmad Al-Imtiaz | Prospective Graduate Student</p>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="assets/pdfs/Curriculum Vitae_Ahmad Al-Imtiaz.pdf" target="_blank">Curriculum Vitae</a>
+      <a href="research.html">Research</a>
+      <a href="outreach.html">Outreach</a>
+      <a href="writings.html">Writings</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <div style="text-align: center; padding: 60px 20px;">
+      <h2>🚧 Under Construction 🚧</h2>
+      <p style="text-align: center;">This page is currently under development. Thanks for your understanding!</p>
+    </div>
+
+    <section id="contact">
+      <h2>Contact Information</h2>
+      <p>Email: <a href="mailto:ahmadal.imtiaz@gmail.com">ahmadal.imtiaz@gmail.com</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; Ahmad Al-Imtiaz | Last updated: <span id="last-updated"></span></p>
+    
+    <script>
+      // Grab the last modified date of the file
+      const modifiedDate = new Date(document.lastModified);
+      
+      // Format it beautifully (e.g., "February 21, 2026")
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      const formattedDate = modifiedDate.toLocaleDateString('en-US', options);
+      
+      // Inject it into the span above
+      document.getElementById('last-updated').textContent = formattedDate;
+    </script>
+  </footer>
+  
+</body>
+</html>

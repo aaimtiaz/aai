@@ -1,0 +1,147 @@
+/* General Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Body Styling */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  background-color: #EEEEEE;
+  color: #333;
+  padding: 20px;
+}
+
+/* Header */
+header {
+  background-color: #003366;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+header h1 {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+header p {
+  font-size: 1.1em;
+  color: #cce0ff;
+}
+
+/* Navigation */
+nav {
+  margin-top: 15px;
+}
+
+nav a {
+  color: #ffffff;
+  text-decoration: none;
+  margin: 0 10px;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+
+nav a:hover {
+  color: #ffcc00;
+}
+
+/* Main Content */
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  background-color: #ECF4E8;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+main h2 {
+  margin-bottom: 15px;
+  color: #003366;
+}
+
+main p {
+  margin-bottom: 15px;
+  font-size: 1em;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  margin-top: 40px;
+  padding: 15px;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.project {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  gap: 20px;
+}
+
+.project-img {
+  width: 400px;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.project-text {
+  max-width: 800px;
+}
+
+.project-text h3 {
+  margin-top: 0;
+}
+
+/* ==========================================================================
+   Global Content and Contact Styles (Moved from HTML)
+   ========================================================================== */
+
+/* Justify text for all paragraphs and subheadings in the main content */
+main p, main h3 {
+  text-align: justify;
+}
+
+/* Index Page: Profile Image Styling */
+main section > img {
+  float: right;
+  width: 300px;
+  height: 380px;
+  object-fit: cover;
+  border-radius: 0;
+  margin-left: 20px;
+  margin-bottom: 10px;
+  box-shadow: 0 0 5px 2px #2B4F36;
+}
+
+/* Contact section styles */
+#contact {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 2px solid #ccc;
+}
+
+#contact h2 {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+#contact p {
+  text-align: center;
+  font-size: 1.1rem;
+  margin: 5px 0;
+}
+
+/* Smooth scroll behavior for browsers that support it */
+html {
+  scroll-behavior: smooth;
+}

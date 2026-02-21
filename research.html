@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Research | Ahmad Al-Imtiaz</title>
+  <link rel="icon" type="image/png" href="assets/images/favicon.png" />
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/responsive.css" />
+
+  <style>
+    main section h2 {
+      text-align: justify;
+    }
+  </style>
+
+</head>
+<body>
+  <header>
+    <h1>Research</h1>
+    <p>Ahmad Al-Imtiaz | Prospective Graduate Student</p>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="assets/pdfs/Curriculum Vitae_Ahmad Al-Imtiaz.pdf" target="_blank">Curriculum Vitae</a>
+      <a href="teaching.html">Teaching</a>
+      <a href="outreach.html">Outreach</a>
+      <a href="writings.html">Writings</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h2>Publications & Current Projects</h2>
+
+      <div class="project">
+        <img src="assets/images/bdlensing.png" alt="Strong lensing analysis" class="project-img">
+        <div class="project-text">
+          <h3>Investigating the relation between the environment and internal structure of massive elliptical galaxies using strong lensing</h3>
+          <p><strong>Supervisor: Dr. Anowar J Shajib;</strong> A&A, July 2025</p>
+          <p>
+            This project explores how large-scale environments influence the internal structure of massive elliptical galaxies. By analyzing a sample of galaxy-galaxy
+            strong lenses, we characterized the line-of-sight environment and estimated correlations between centroid offsets, position angle offsets, and the density
+            of galaxies in the lens galaxy’s local environment. We robustly found no correlation between the mass-light centroid offset and local galaxy density; however,
+            we discovered a moderate to strong correlation between the position angle offset and the standard definition of local galaxy density.
+          </p>
+          <p>
+            🔗 <a href="	https://doi.org/10.1051/0004-6361/202453239" target="_blank">Publication link</a>
+          </p>
+        </div>
+      </div>
+
+      <div class="project">
+        <img src="assets/images/agel0014.png" alt="Chemical analysis AGEL0014" class="project-img">
+        <div class="project-text">
+          <h3>Resolved Metallicity and Age Gradients in the Lensed Quiescent Galaxy AGEL0014 at z&approx;1.4 </h3>
+          <p><strong>Supervisor: Dr. Nicha Leethochawalit</strong> (Manuscript in preparation)</p>
+          <p>
+            For my M.Sc. thesis, I am analyzing the spatially resolved stellar populations of the lensed quiescent galaxy AGEL0014 (z&approx;1.4) to constrain its formation
+            and quenching mechanisms. Combining imaging data from HST and Gemini/GSAOI with spectroscopic data from Keck/MOSFIRE, I modeled the system using Lenstronomy. To
+            robustly recover intrinsic stellar population trends, I forward-modeled source plane metallicity gradients by applying light-weighting and PSF convolution to the
+            projected image-plane map to simulate slit data.
+          </p>
+
+          <p>
+            By performing full-spectrum fitting with ALF (Absorption Line Fitter), this analysis reveals a clear positive age gradient and a negative metallicity gradient. These
+            signatures strongly support an outside-in quenching scenario: the core's high &alpha;-enrichment suggests it formed in a short, intense burst and quenched abruptly,
+            whereas the iron-rich outskirts imply a more extended star formation history allowing for enrichment from Type Ia progenitors.
+          </p>
+        </div>
+      </div>
+
+      <div class="project">
+        <img src="assets/images/sparkler.png" alt="Stellar population of Sparkler galaxy" class="project-img">
+        <div class="project-text">
+          <h3>The study of stellar population of Sparkler galaxy</h3>
+          <p><strong>Supervisor: Dr. Lamiya Mowla</strong> (Ongoing)</p>
+          <p>
+            I began this project during the ICTP PWF Bangladesh Summer Internship Program under Dr. Lamiya Mowla, and I am currently continuing this research as a Graduate Research
+            Assistant working with cutting-edge JWST data. The focus of this study is the Sparkler galaxy—a strongly lensed system at z &approx; 1.4 and a follow-up to Mowla &amp; Iyer
+            et al. (2022)—where we aim to investigate what makes it distinct from other galaxies at similar epochs.
+          </p>
+
+          <p>
+            The study involves lens modeling and performing SED fitting of JWST/NIRCam data alongside JWST/NIRSpec IFU observations of its highly magnified (~10–100x) image using
+            Dense Basis and piXedfit. By characterizing its internal properties and environment, we hope to understand how galaxies with LMC-like progenitor masses evolved around
+            cosmic noon, ultimately providing context for how globular cluster (GC) populations evolved to the present day.
+          </p>
+        </div>
+      </div>
+
+    </section>
+
+        <!-- Contact Information Section -->
+    <section id="contact">
+      <h2>Contact Information</h2>
+      <p>Email: <a href="mailto:ahmadal.imtiaz@gmail.com">ahmadal.imtiaz@gmail.com</a></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; Ahmad Al-Imtiaz | Last updated: <span id="last-updated"></span></p>
+    
+    <script>
+      // Grab the last modified date of the file
+      const modifiedDate = new Date(document.lastModified);
+      
+      // Format it beautifully (e.g., "February 21, 2026")
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      const formattedDate = modifiedDate.toLocaleDateString('en-US', options);
+      
+      // Inject it into the span above
+      document.getElementById('last-updated').textContent = formattedDate;
+    </script>
+  </footer>
+  
+</body>
+</html>
