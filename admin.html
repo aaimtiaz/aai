@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin | Ahmad Al-Imtiaz</title>
+  <link rel="icon" type="image/png" href="assets/images/favicon.png" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/responsive.css" />
+  <style>
+    main { max-width: 700px; }
+    label { display: block; font-weight: bold; margin-top: 18px; margin-bottom: 6px; }
+    input[type="text"], input[type="password"], input[type="file"], textarea, select {
+      width: 100%;
+      padding: 8px;
+      font-family: inherit;
+      font-size: 1em;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    textarea { min-height: 120px; resize: vertical; }
+    .hint { font-size: 0.85em; color: #666; margin-top: 4px; }
+    .row { margin-bottom: 4px; }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #003366;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover { background-color: #002244; }
+    button.secondary { background-color: #888; margin-left: 10px; }
+    button.secondary:hover { background-color: #666; }
+    button:disabled { background-color: #aaa; cursor: not-allowed; }
+    #status { margin-top: 20px; padding: 12px; border-radius: 4px; white-space: pre-line; display: none; }
+    #status.ok { display: block; background: #e3f5e1; color: #235c26; border: 1px solid #a9d9a4; }
+    #status.err { display: block; background: #fbe3e3; color: #7a1f1f; border: 1px solid #f0b4b4; }
+    #status.busy { display: block; background: #eef2f8; color: #33475b; border: 1px solid #c6d4e6; }
+    #login-panel, #post-panel { display: none; }
+    #post-panel .top-bar { display: flex; justify-content: space-between; align-items: center; }
+    fieldset { border: 1px solid #ddd; border-radius: 6px; margin-top: 20px; padding: 15px; }
+    legend { font-weight: bold; color: #003366; padding: 0 6px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Admin</h1>
+    <p>Publish a new writing</p>
+  </header>
+
+  <main>
+    <section id="login-panel">
+      <h2>Log in</h2>
+      <p>
+        Paste a GitHub <strong>fine-grained personal access token</strong> scoped to only the
+        <code>aaimtiaz.github.io</code> repository, with <strong>Contents: Read and write</strong> permission
+        and nothing else. Create one at
+        <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">github.com/settings/personal-access-tokens/new</a>
+        &mdash; set an expiration and regenerate it periodically.
+      </p>
+      <label for="token-input">GitHub token</label>
+      <input type="password" id="token-input" autocomplete="off" placeholder="github_pat_..." />
+      <div class="row">
+        <label style="display:inline; font-weight:normal;">
+          <input type="checkbox" id="remember-check" style="width:auto;" />
+          Remember this token on this device (stored in this browser only)
+        </label>
+      </div>
+      <button id="login-btn">Log in</button>
+      <div id="login-status"></div>
+    </section>
+
+    <section id="post-panel">
+      <div class="top-bar">
+        <h2>New writing</h2>
+        <button id="logout-btn" class="secondary">Log out</button>
+      </div>
+
+      <form id="post-form">
+        <label for="title">Title</label>
+        <input type="text" id="title" required />
+
+        <label for="image">Image</label>
+        <input type="file" id="image" accept="image/*" required />
+        <div class="hint">Keep it under ~2MB so the page stays fast to load.</div>
+
+        <label for="imageCaption">Image caption (optional)</label>
+        <input type="text" id="imageCaption" />
+
+        <fieldset>
+          <legend>Content</legend>
+
+          <label for="intro">Intro line before the writing (optional)</label>
+          <input type="text" id="intro" />
+
+          <label for="body">Writing</label>
+          <textarea id="body" required></textarea>
+
+          <label for="bodyStyle">Style</label>
+          <select id="bodyStyle">
+            <option value="poem">Poem (centered, italic)</option>
+            <option value="prose">Prose (justified)</option>
+          </select>
+
+          <label for="note">Note after the writing (optional)</label>
+          <textarea id="note"></textarea>
+        </fieldset>
+
+        <label for="date">Date line</label>
+        <input type="text" id="date" />
+
+        <label for="excerpt">Excerpt (optional)</label>
+        <input type="text" id="excerpt" />
+        <div class="hint">Shown as the teaser text only if this ends up being your newest post &mdash; new posts always appear first, so this replaces the current featured entry on the writings page.</div>
+
+        <button id="publish-btn" type="submit">Publish</button>
+      </form>
+
+      <div id="status"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; Ahmad Al-Imtiaz</p>
+  </footer>
+
+  <script>
+    const OWNER = 'aaimtiaz';
+    const REPO = 'aaimtiaz.github.io';
+    const BRANCH = 'main';
+    const WRITINGS_PATH = 'assets/data/writings.json';
+    const IMAGES_DIR = 'assets/images';
+    const API = 'https://api.github.com';
+    const TOKEN_KEY = 'admin_gh_token';
+
+    const loginPanel = document.getElementById('login-panel');
+    const postPanel = document.getElementById('post-panel');
+    const tokenInput = document.getElementById('token-input');
+    const rememberCheck = document.getElementById('remember-check');
+    const loginBtn = document.getElementById('login-btn');
+    const loginStatus = document.getElementById('login-status');
+    const logoutBtn = document.getElementById('logout-btn');
+    const form = document.getElementById('post-form');
+    const publishBtn = document.getElementById('publish-btn');
+    const statusEl = document.getElementById('status');
+
+    function getToken() {
+      return sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
+    }
+
+    function setStatus(el, msg, kind) {
+      el.textContent = msg;
+      el.className = kind || '';
+    }
+
+    function showLoggedIn() {
+      loginPanel.style.display = 'none';
+      postPanel.style.display = 'block';
+      const today = new Date();
+      const dateField = document.getElementById('date');
+      if (!dateField.value) {
+        dateField.value = 'Written on ' + today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      }
+    }
+
+    function showLoggedOut() {
+      loginPanel.style.display = 'block';
+      postPanel.style.display = 'none';
+    }
+
+    if (getToken()) {
+      showLoggedIn();
+    } else {
+      showLoggedOut();
+    }
+
+    loginBtn.addEventListener('click', () => {
+      const token = tokenInput.value.trim();
+      if (!token) {
+        setStatus(loginStatus, 'Paste a token first.', 'err');
+        return;
+      }
+      if (rememberCheck.checked) {
+        localStorage.setItem(TOKEN_KEY, token);
+      } else {
+        sessionStorage.setItem(TOKEN_KEY, token);
+      }
+      tokenInput.value = '';
+      showLoggedIn();
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      sessionStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+      showLoggedOut();
+    });
+
+    function ghHeaders() {
+      return {
+        'Authorization': 'Bearer ' + getToken(),
+        'Accept': 'application/vnd.github+json'
+      };
+    }
+
+    async function ghGetFile(path) {
+      const res = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURI(path)}?ref=${BRANCH}`, {
+        headers: ghHeaders()
+      });
+      if (res.status === 404) return null;
+      if (!res.ok) throw new Error(`GitHub API error reading ${path}: ${res.status} ${(await res.json()).message || ''}`);
+      const data = await res.json();
+      const binary = atob(data.content.replace(/\n/g, ''));
+      const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+      return { sha: data.sha, text: new TextDecoder().decode(bytes) };
+    }
+
+    async function ghPutFile(path, base64Content, message, sha) {
+      const body = { message, content: base64Content, branch: BRANCH };
+      if (sha) body.sha = sha;
+      const res = await fetch(`${API}/repos/${OWNER}/${REPO}/contents/${encodeURI(path)}`, {
+        method: 'PUT',
+        headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(`GitHub API error writing ${path}: ${res.status} ${err.message || ''}`);
+      }
+      return res.json();
+    }
+
+    function utf8ToBase64(str) {
+      const bytes = new TextEncoder().encode(str);
+      let binary = '';
+      bytes.forEach(b => binary += String.fromCharCode(b));
+      return btoa(binary);
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function slugify(title) {
+      const base = title
+        .toLowerCase()
+        .replace(/[^a-z0-9ঀ-৿]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 50) || 'writing';
+      return base + '-' + Date.now().toString(36);
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      publishBtn.disabled = true;
+
+      const title = document.getElementById('title').value.trim();
+      const imageFile = document.getElementById('image').files[0];
+      const imageCaption = document.getElementById('imageCaption').value.trim();
+      const intro = document.getElementById('intro').value.trim();
+      const body = document.getElementById('body').value.trim();
+      const bodyStyle = document.getElementById('bodyStyle').value;
+      const note = document.getElementById('note').value.trim();
+      const date = document.getElementById('date').value.trim();
+      const excerpt = document.getElementById('excerpt').value.trim();
+
+      if (!title || !imageFile || !body) {
+        setStatus(statusEl, 'Title, image, and writing are required.', 'err');
+        publishBtn.disabled = false;
+        return;
+      }
+
+      try {
+        setStatus(statusEl, 'Reading image...', 'busy');
+        const imageBase64 = await fileToBase64(imageFile);
+        const ext = (imageFile.name.split('.').pop() || 'jpg').toLowerCase();
+        const slug = slugify(title);
+        const imagePath = `${IMAGES_DIR}/${slug}.${ext}`;
+
+        setStatus(statusEl, 'Uploading image...', 'busy');
+        await ghPutFile(imagePath, imageBase64, `Add image for writing: ${title}`);
+
+        setStatus(statusEl, 'Fetching current writings list...', 'busy');
+        const current = await ghGetFile(WRITINGS_PATH);
+        const writings = current ? JSON.parse(current.text) : [];
+
+        writings.unshift({
+          title, image: imagePath, imageCaption, intro, body, bodyStyle, note, date, excerpt
+        });
+
+        setStatus(statusEl, 'Publishing writings.json...', 'busy');
+        const newContentBase64 = utf8ToBase64(JSON.stringify(writings, null, 2) + '\n');
+        await ghPutFile(WRITINGS_PATH, newContentBase64, `Add writing: ${title}`, current ? current.sha : undefined);
+
+        setStatus(statusEl, `Published "${title}". GitHub Pages will redeploy in about a minute — then it'll be live at the top of your Writings page.`, 'ok');
+        form.reset();
+      } catch (err) {
+        console.error(err);
+        setStatus(statusEl, 'Something went wrong: ' + err.message, 'err');
+      } finally {
+        publishBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
