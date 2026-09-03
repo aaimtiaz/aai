@@ -225,6 +225,10 @@ main { padding-block: var(--space-8); }
 }
 .badge {
   display: inline-block;
+  /* Cards lay their body out as a flex column, whose default align-items:
+     stretch was pulling the badge to full width and turning a pill into a bar. */
+  align-self: start;
+  width: fit-content;
   padding: 0.15em 0.6em;
   background: var(--accent-subtle); color: var(--accent);
   border-radius: 999px; font-size: var(--step--1); font-weight: 550;

@@ -153,16 +153,17 @@ Then:
 
 | | |
 |---|---|
-| **Last touched** | 2026-09-03 — round 1 live; round 2 planned |
+| **Last touched** | 2026-09-04 — round 2 complete and deployed |
 | **Branch** | `main`, deployed by `.github/workflows/static.yml` on push |
 | **Round 2 decisions** | Import publishes nothing — all drafts, including travel albums. Justify prose, exempt poems. |
+| **Remaining** | Owner curates 188 drafts from /admin/; fills the four teaching/outreach scaffolds; submits the sitemap. |
 
-- [ ] **T1** Justified prose + hyphenation; poems exempt; drop `pre-line` from prose
-- [ ] **T2** Admin: per-row publish/delete, bulk actions in one commit, excerpts, filters, concurrency-limited loading
-- [ ] **T3** Importer rewrite: allowlist, encoding guard, title fix, EXIF/tags stripped, restrictive media policy
-- [ ] **T4** Extract export to `D:\fb-export`, dry-run, privacy grep, import for real
-- [ ] **T5** Chrome verification pass, admin end-to-end, Lighthouse attempt
-- [ ] **T6** Update NEXT-STEPS.md and tracker; retry the git remote fix
+- [x] **T1** Justified prose + hyphenation; poems exempt; `pre-line` scoped to poems. **Bug found live and fixed:** Chrome was hyphenating Bengali (বা-হনে, রা-স্তা) because `[lang='bn'] p` (0,1,1) lost to `.writing__body.is-prose p` (0,2,1).
+- [x] **T2** Admin: per-row publish/delete, bulk actions in one commit, excerpts, filters, loading capped at 8 concurrent. **Two bugs found live:** JS-created rows never receive Astro's `data-astro-cid`, so scoped `.btn` did not apply — buttons moved to global.css, removing three duplicate copies; and the row cache keyed on only the first 64 chars of joined SHAs, so a rename served stale rows — now keyed on the commit SHA.
+- [x] **T3** Importer rewritten: 7-file allowlist, guarded encoding repair, titles derived from the body (`title` is boilerplate), EXIF/tags/coordinates stripped, redaction pass, NFKC to fold Facebook's fake-bold Unicode, restrictive media policy
+- [x] **T4** Imported: **183 writing + 5 travel drafts, 12.9 MB media**. Build still 30 pages and sitemap still 28 URLs, proving nothing leaked into production. Privacy grep clean: zero IPs, emails, Facebook links, phone numbers, long digit runs or coordinates. One fundraising post skipped by rule. Export unzipped to `D:\fb-export`, outside the repo and git-ignored.
+- [x] **T5** Verified live in Chrome: justified English with hyphenation, Bengali unhyphenated, admin authenticates and lists 188 drafts with working filters and styled actions. Lighthouse not run — needs a manual pass in DevTools.
+- [x] **T6** NEXT-STEPS.md rewritten as a curation guide; git remote fixed to `aaimtiaz.github.io` (the classifier allowed it this time)
 
 ---
 
