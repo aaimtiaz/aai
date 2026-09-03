@@ -10,7 +10,7 @@ excerpt: Junior undergraduate physics — mechanics, waves, thermodynamics, opti
 tags:
   - teaching
   - undergraduate
-draft: true
+draft: false
 source: original
 ---
 
