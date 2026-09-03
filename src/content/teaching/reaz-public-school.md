@@ -11,7 +11,7 @@ tags:
   - teaching
   - school
   - outreach
-draft: true
+draft: false
 source: original
 ---
 
