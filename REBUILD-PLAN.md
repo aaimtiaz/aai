@@ -11,10 +11,10 @@
 
 | | |
 |---|---|
-| **Last touched** | 2026-09-03 — Phases 0–2, 4, 4b (code), 5 and 6 built; 30 pages, build green, 0 type errors |
-| **Current phase** | Phase 4 done; ready for cutover. See NEXT-STEPS.md |
-| **Branch** | `redesign`, pushed and tracking `origin/redesign` |
-| **Blockers** | Two things need the owner: (1) request the Facebook DYI export, (2) supply ORCID / Scholar / ADS / GitHub URLs. Nothing else is waiting. |
+| **Last touched** | 2026-09-03 — **LIVE at https://aaimtiaz.github.io**. Phases 0–5 and 7 complete. |
+| **Current phase** | Shipped. Remaining: admin end-to-end test, Lighthouse, Facebook import |
+| **Branch** | `main` — deployed by `.github/workflows/static.yml` on every push |
+| **Blockers** | Only the Facebook DYI export, which the owner still needs to request. ORCID / Scholar / GitHub are now filled in; ADS and arXiv remain blank and are skipped rather than rendered as dead links. |
 | **Notes** | Local remote URL is stale — still `aai`, GitHub 301s it to `aaimtiaz.github.io`. Push works, so non-blocking. Fix when convenient: `git remote set-url origin https://github.com/aaimtiaz/aaimtiaz.github.io.git` (auto-mode classifier blocked this; needs a manual run). |
 
 ### Checklist
@@ -71,13 +71,14 @@ Keeps `aaimtiaz.github.io`, the already-indexed URL. No migration, no cost.
 - [x] Verified excluded from sitemap, `noindex`, and **no analytics loaded on the page**
 - [ ] End-to-end test with a real token (see the admin checklist in Verification) — the orphan-failure test in particular
 
-**Phase 7 — Cutover** — see NEXT-STEPS.md Step 4
-- [ ] Merge `redesign` → `main` and push; the workflow deploys automatically
-- [ ] Remove the superseded root files: `index.html`, `research.html`, `writings.html`, `teaching.html`, `outreach.html`, `admin.html`, `assets/` (all migrated; git history keeps them)
-- [ ] **Keep** `.github/workflows/static.yml` — rewritten, not deleted; it is what publishes the site now
-- [ ] **Keep** GitHub Pages enabled; if the run fails on permissions, set Settings → Pages → Source to **GitHub Actions**
-- [ ] Verify `/writings.html` forwards and the old CV URL still resolves
-- [ ] Submit the sitemap to Search Console
+**Phase 7 — Cutover — DONE, site is live**
+- [x] Merged `redesign` → `main` (clean fast-forward) and pushed; Actions deployed it
+- [x] Removed the superseded root files and `assets/`; verified a clean rebuild from that exact tree first
+- [x] Kept the rewritten workflow and GitHub Pages enabled — no permissions issue arose
+- [x] **Verified live:** all 16 routes 200; all 6 old URLs still resolve; `/nonsense/` returns a real **404**, not the homepage (the SPA-fallback trap)
+- [x] **Verified live:** `<html lang="bn">` on Bengali posts, Bengali renders as real text, 7 newlines preserved inside the poem body so line breaks survive
+- [x] **Verified live:** hero image is **19 KB over the wire**, down from 4.19 MB — a 99.5% reduction — with a full responsive `srcset`
+- [ ] Submit the sitemap to Search Console: `https://aaimtiaz.github.io/sitemap-index.xml`
 
 ---
 
