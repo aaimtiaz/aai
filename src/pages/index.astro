@@ -105,15 +105,7 @@ const labels: Record<string, string> = {
   .hero__tagline { font-size: var(--step-1); color: var(--text-muted); }
   .hero__affil { color: var(--text-muted); font-size: var(--step--1); line-height: 1.7; }
   .hero__links { display: flex; gap: var(--space-3); flex-wrap: wrap; }
-  .btn {
-    display: inline-flex; align-items: center; min-height: 44px;
-    padding: 0 var(--space-5); border-radius: var(--radius-sm);
-    background: var(--accent); color: var(--accent-contrast);
-    text-decoration: none; font-weight: 550;
-  }
-  .btn:hover { background: var(--accent-hover); color: var(--accent-contrast); }
-  .btn--ghost { background: none; color: var(--accent); border: 1px solid var(--border-strong); }
-  .btn--ghost:hover { background: var(--surface); color: var(--accent); }
+  /* .btn lives in global.css — see the note there. */
   .home-bio { margin-block-end: var(--space-10); }
   .section-cards { margin-block: var(--space-5) var(--space-10); }
   section + section { margin-block-start: var(--space-10); }

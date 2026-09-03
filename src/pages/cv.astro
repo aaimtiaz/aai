@@ -75,12 +75,7 @@ const labels: Record<string, string> = {
   .cv { max-width: 52rem; }
   .lede { color: var(--text-muted); margin-block: var(--space-3); line-height: 1.7; }
   .actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-block: var(--space-5) var(--space-4); }
-  .btn { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-5);
-         border-radius: var(--radius-sm); background: var(--accent); color: var(--accent-contrast);
-         text-decoration: none; font-weight: 550; }
-  .btn:hover { background: var(--accent-hover); color: var(--accent-contrast); }
-  .btn--ghost { background: none; color: var(--accent); border: 1px solid var(--border-strong); }
-  .btn--ghost:hover { background: var(--surface); color: var(--accent); }
+  /* .btn lives in global.css — see the note there. */
   section { margin-block-start: var(--space-9); }
   section h2 { margin-block-end: var(--space-4); }
   .cv-list { padding-inline-start: var(--space-5); display: grid; gap: var(--space-4); }

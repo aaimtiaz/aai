@@ -127,8 +127,17 @@ function guessForm(body) {
 const normaliseProse = (body) =>
   body.split('\n').map((l) => l.trim()).filter(Boolean).join('\n\n');
 
-/** Strip zero-width joiners and the like that survive the encoding repair. */
-const tidy = (s) => s.replace(/\u200b|\ufeff/g, '').replace(/\r\n?/g, '\n').trim();
+/**
+ * Strip zero-width joiners, and fold Facebook's fake-bold text back to ASCII.
+ *
+ * People type titles like "\ud835\udc70\ud835\udc8f \ud835\udc95\ud835\udc89\ud835\udc86 \ud835\udc69\ud835\udc8d\ud835\udc86\ud835\udc82\ud835\udc8c \ud835\udc74\ud835\udc8a\ud835\udc85\ud835\udc98\ud835\udc8a\ud835\udc8f\ud835\udc95\ud835\udc86\ud835\udc93" using the Mathematical
+ * Alphanumeric Symbols block to fake styling Facebook does not offer. On a real
+ * site those are a liability: screen readers read them character by character,
+ * search will not match them, and they ignore the page's own typography.
+ * NFKC maps them to plain letters and leaves Bengali untouched.
+ */
+const tidy = (s) =>
+  s.normalize('NFKC').replace(/\u200b|\ufeff/g, '').replace(/\r\n?/g, '\n').trim();
 
 /**
  * Redaction pass over post bodies.
@@ -165,6 +174,17 @@ function redact(text) {
   return out.replace(/[ \t]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
 }
 
+/**
+ * Some posts are fundraising appeals: bank routing numbers, mobile-banking
+ * accounts, and the full name plus institution of whoever is collecting.
+ * Redaction strips the digits but cannot un-name a third party, and the post
+ * is not writing in any case. Skip the whole thing rather than import a
+ * hollowed-out version of it.
+ */
+let financialSkipped = 0;
+const FINANCIAL = /routing number|account (?:no|number)|a\/c\s*(?:no|#)|রকেট নম্বর|বিকাশ নম্বর|নগদ নম্বর|bkash number|rocket number/i;
+const hasFinancialDetails = (body) => FINANCIAL.test(body);
+
 function titleFrom(body) {
   const firstLine = body.split('\n').map((l) => l.trim()).find(Boolean) ?? '';
   // Prefer a sentence boundary; Bengali uses । (danda) as its full stop.
@@ -179,7 +199,11 @@ const usedSlugs = new Set();
  *  media directory \u2014 "\u09b9\u09b0\u09b7\u09aa\u09c1\u09b0" ships its photos under `harasapura_1880737...`,
  *  which beats falling back to a dateless `lekha-` stem. */
 function slugify(title, ts, hint) {
-  const toAscii = (s) => s.toLowerCase().normalize('NFKD')
+  // normalize BEFORE lowercasing. The other order silently drops letters:
+  // "\ud835\udc70\ud835\udc8f \ud835\udc95\ud835\udc89\ud835\udc86 \ud835\udc69\ud835\udc8d\ud835\udc86\ud835\udc82\ud835\udc8c" lowercases to itself (those codepoints have no case),
+  // then decomposes to uppercase "In the Bleak", and the [^a-z0-9] filter eats
+  // the capitals \u2014 which is how a slug became "n-the-leak-idwinter".
+  const toAscii = (s) => s.normalize('NFKD').toLowerCase()
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/['\u2018\u2019"]/g, '')     // cox's bazar -> coxs-bazar, not cox-s-bazar
     .replace(/\d{6,}/g, '')     // never let an account id become a URL
@@ -246,6 +270,7 @@ for (const e of posts) {
   // `data` is an array of single-key dicts; the body is whichever has `post`.
   const body = redact(tidy((e.data ?? []).map((d) => d?.post).filter(Boolean).join('\n\n')));
   if (!body) continue;                                 // photo-only shares add nothing
+  if (hasFinancialDetails(body)) { financialSkipped++; continue; }
   const ts = e.timestamp;
   if (!ts) continue;
   const photos = (e.attachments ?? [])
@@ -267,6 +292,7 @@ for (const e of archiveList) {
     (e.label_values ?? []).filter((l) => l?.label === 'Message').map((l) => l.value).filter(Boolean).join('\n\n'),
   ));
   if (!body || !e.timestamp) continue;
+  if (hasFinancialDetails(body)) { financialSkipped++; continue; }
   candidates.push({ ts: e.timestamp, body, photos: [], place: null, kind: 'archive' });
   archiveCount++;
 }
@@ -422,6 +448,7 @@ ${DRY_RUN ? 'DRY RUN — nothing was written.' : 'Done.'}
   skipped          ${skipped}   (already existed)
   media            ${imgBefore ? `${mb(imgBefore)} -> ${mb(imgAfter)}` : 'none'}${imgSkipped ? `, ${imgSkipped} skipped` : ''}
   redactions       ${redactions} (profile links, mentions, emails, phone numbers)
+  skipped whole     ${financialSkipped} (fundraising posts carrying banking details)
 
 Everything is draft: true and invisible on the live site.
 Run "npm run dev" to read them, then publish the good ones from /admin/.
