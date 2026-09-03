@@ -5,7 +5,6 @@ lang: en
 location:
   name: Sylhet
 cover: ./images/jaintapur-ride.webp
-coverAlt: ""
 gallery:
   - src: ./images/jaintapur-ride-2.webp
     alt: ""
@@ -18,7 +17,7 @@ gallery:
 excerpt: "#Cycle_Ride ~115km, Jaintapur, Sylhet, 21 Jan 23 Life moves pretty fast, you don't stop and look around once in a while, you could miss it. Remember, "
 tags:
   - travel
-draft: true
+draft: false
 source: facebook
 ---
 
