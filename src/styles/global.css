@@ -73,11 +73,22 @@ p { text-wrap: pretty; }
   overflow-wrap: break-word;
 }
 
-/* No browser ships a Bengali hyphenation dictionary, so `hyphens: auto` there
-   either does nothing or breaks words in the wrong places. Justification still
-   applies — Bengali sets well justified, it just stretches inter-word space. */
+/* Bengali must never be hyphenated. Chrome will happily apply a generic
+   algorithm to it and produce breaks like বা-হনে and রা-স্তা, splitting words
+   at points that are not syllable boundaries in the script at all.
+   Justification still applies — Bengali sets well justified, it just stretches
+   inter-word space instead of hyphenating.
+
+   These selectors deliberately mirror the justified rule above and add the
+   [lang] ancestor, so they outrank it. A bare `[lang='bn'] p` (0,1,1) loses to
+   `.writing__body.is-prose p` (0,2,1), which is exactly the bug that shipped. */
 [lang='bn'],
-[lang='bn'] p {
+[lang='bn'] p,
+[lang='bn'] .prose p,
+[lang='bn'] .writing__body.is-prose p,
+[lang='bn'] .travel__body p,
+.prose [lang='bn'] p,
+[lang='bn'].prose p {
   hyphens: none;
   -webkit-hyphens: none;
 }
