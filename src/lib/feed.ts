@@ -1,11 +1,10 @@
 import rss from '@astrojs/rss';
-import { getPublished, byDateDesc } from './content';
+import { getPublished, byDateDesc, type DatedCollection } from './content';
 import { site } from '../data/site';
-import type { CollectionKey } from 'astro:content';
 
 /** One feed builder for the combined feed and each section feed. */
 export async function buildFeed(opts: {
-  sections: { name: CollectionKey; path: string }[];
+  sections: { name: DatedCollection; path: string }[];
   title: string;
   description: string;
   siteUrl: URL | undefined;

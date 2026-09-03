@@ -11,55 +11,81 @@
 
 | | |
 |---|---|
-| **Last touched** | 2026-09-03 — Phases 0 & 1 done |
-| **Current phase** | Phase 2 — Astro skeleton |
+| **Last touched** | 2026-09-03 — Phases 0–2, 4, 4b (code), 5 and 6 built; 30 pages, build green, 0 type errors |
+| **Current phase** | Phase 3 — connect Cloudflare Pages (**needs the owner's account**) |
 | **Branch** | `redesign`, pushed and tracking `origin/redesign` |
-| **Blockers** | Facebook DYI export not yet requested (**user action**) |
+| **Blockers** | Three things need the owner: (1) connect Cloudflare Pages, (2) request the Facebook DYI export, (3) supply ORCID / Scholar / ADS / GitHub URLs. Nothing else is waiting. |
 | **Notes** | Local remote URL is stale — still `aai`, GitHub 301s it to `aaimtiaz.github.io`. Push works, so non-blocking. Fix when convenient: `git remote set-url origin https://github.com/aaimtiaz/aaimtiaz.github.io.git` (auto-mode classifier blocked this; needs a manual run). |
 
 ### Checklist
 
 **Phase 0 — Unblock**
-- [x] `winget install --id OpenJS.NodeJS.LTS` — **node v24.19.0, npm 11.17.0** at `C:Program Files
-odejs
-ode.exe`
-- [ ] Request the Facebook DYI export (JSON, High media, all time) — long lead time, **user action**
+- [x] `winget install --id OpenJS.NodeJS.LTS` — **node v24.19.0, npm 11.17.0**
+- [ ] Request the Facebook DYI export (JSON, High media, all time) — long lead time, **user action**. The importer is already written and its encoding repair is verified, so this is the only thing gating Phase 4b.
 
 **Phase 1 — Repo hygiene**
 - [x] `git branch -m master main`, set upstream, create + push `redesign` — master and origin/main were identical at `dfef1fd`, no divergence
 
 **Phase 2 — Astro skeleton**
-- [ ] Scaffold Astro preserving `.git`; install deps
-- [ ] `astro.config.mjs` + `src/content.config.ts` (six collections)
-- [ ] `Base.astro`, `BaseHead.astro`, tokens, fonts, `404.astro`, `robots.txt.ts`, sitemap
-- [ ] Migrate home bio + three research entries
-- [ ] **Gate:** `dist/404.html` exists at top level after `npm run build`
+- [x] Scaffold Astro preserving `.git`; install deps — **astro 7.3.1** (see Astro 7 notes below)
+- [x] `astro.config.mjs` + `src/content.config.ts` (six collections)
+- [x] `Base.astro`, `BaseHead.astro`, tokens, fonts, `404.astro`, `robots.txt.ts`, sitemap
+- [x] Migrate home bio + three research entries
+- [x] **Gate PASSED:** `dist/404.html` is at the top level, not `dist/404/index.html`
 
-**Phase 3 — Cloudflare Pages**
-- [ ] Connect repo, production branch `redesign`, `.node-version` pinned, first deploy green
+**Phase 3 — Cloudflare Pages** — *needs the owner's Cloudflare account*
+- [x] `.node-version` pinned to `24.19.0`
+- [ ] Connect the repo at dash.cloudflare.com → Workers & Pages → Create → Pages → Connect to Git
+      · repository `aaimtiaz/aaimtiaz.github.io` · production branch **`redesign`**
+      · framework preset **Astro** · build `npm run build` · output `dist`
+- [ ] Confirm the first deploy is green, then run the preview-deploy checks below
 
 **Phase 4 — Writing + travel**
-- [ ] Migrate three writings (verify poem line breaks + Bengali)
-- [ ] Re-encode images to WebP ≤ 2400px
-- [ ] `/writing/`, `/writing/[id]/`, `/travel/`, `/travel/[id]/`, tag routes, RSS
+- [x] Migrated three writings via `scripts/migrate-writings.mjs` — Bengali read straight from the JSON rather than retyped; verified UTF-8, no BOM, line breaks and em-dashes intact
+- [x] Re-encoded images to WebP — **5.79 MB → 892 KB (84.9%)**; `winter_morning.png` **4.19 MB → 136 KB**
+- [x] `/writing/`, `/writing/[id]/`, `/travel/`, `/travel/[id]/`, `/tags/[tag]/`, three RSS feeds
+- [x] Language filters at `/writing/lang/en|bn/` — deliberately *not* `/writing/en/`, which would collide with a post slug
 
 **Phase 4b — Facebook import**
-- [ ] `scripts/import-facebook.mjs`; **verify `latin1`→`utf8` repair on a known Bengali string first**
-- [ ] Run import; review drafts in `astro dev`; strip third-party data; curate
+- [x] `scripts/import-facebook.mjs` written — classifies to writing/travel, sends ambiguous posts to a review queue rather than guessing, strips tags/comments/reactions, re-encodes media, idempotent by slug, everything `draft: true`
+- [x] **Encoding repair verified**: "উদাস বিকেল" round-trips through the latin1→utf8 fix; ASCII is untouched and already-correct text is not double-repaired
+- [ ] Run it once the export arrives: `npm run import:facebook -- --export "C:/path/to/export" --dry-run` first, then without `--dry-run`
+- [ ] Review the drafts in `npm run dev`, fix misclassifications, publish the good ones
 
 **Phase 5 — Polish**
-- [ ] Teaching, outreach, CV page; dark-mode toggle; JSON-LD; OG image; `_redirects`; `_headers`
-- [ ] Accessibility pass (keyboard, axe, Lighthouse ≥ 95)
+- [x] Teaching and outreach index pages with graceful empty states; `/cv/` page; dark-mode toggle with a pre-paint inline script; `Person` + `ScholarlyArticle` + `BlogPosting` JSON-LD; generated OG image; `_redirects`; `_headers`
+- [x] Accessibility built in: skip link, global `:focus-visible`, `lang="bn"` on Bengali posts, no `text-align: justify`, `prefers-reduced-motion`, 44px targets, disclosure nav instead of a modal
+- [ ] Run axe DevTools and Lighthouse against the Cloudflare preview (needs a browser + the deploy)
 
-**Phase 6 — Admin**
-- [ ] Auth + `GET /user` validation; fixed `OWNER`/`REPO`/`BRANCH` constants
-- [ ] Git Data API single-commit publish; image resize with EXIF orientation
-- [ ] Editor + preview, post list with edit/delete, drafts, autosave
-- [ ] Orphan-failure test (revoke token mid-publish)
+**Phase 6 — Admin** — built at `/admin/`, needs a real token to exercise
+- [x] Auth validated with `GET /user`; token expiry surfaced; `REPO` corrected to `aaimtiaz.github.io`, `BRANCH` to `main`
+- [x] Git Data API single-commit publish (7 calls, one commit); delete and slug-rename use the same path; unforced ref PATCH gives conflict detection for free
+- [x] Client-side resize to WebP ≤2400px with `imageOrientation: 'from-image'` so phone photos are not committed sideways
+- [x] Markdown editor with toolbar, truthful preview (same `pre-line` rule as the real page), post list with edit/delete, drafts, localStorage autosave, 16px inputs and 44px targets
+- [x] Verified excluded from sitemap, `noindex`, and **no analytics loaded on the page**
+- [ ] End-to-end test with a real token (see the admin checklist in Verification) — the orphan-failure test in particular
 
 **Phase 7 — Cutover**
-- [ ] Merge to `main`; switch Cloudflare production branch; attach domain
-- [ ] Delete `.github/workflows/static.yml`; disable GitHub Pages; submit sitemap
+- [ ] Merge `redesign` → `main`; switch the Cloudflare production branch to `main`; attach the custom domain and update `site` in `astro.config.mjs`
+- [ ] **Delete `.github/workflows/static.yml`** — it uploads the whole repo root, so it would publish `src/` and `package.json` as a website
+- [ ] Remove the superseded root files: `index.html`, `research.html`, `writings.html`, `teaching.html`, `outreach.html`, `admin.html`, `assets/` (all migrated; git history keeps them)
+- [ ] Disable GitHub Pages in repo settings; submit the sitemap to Search Console
+
+---
+
+## Astro 7 notes — corrections to the original plan
+
+The plan was researched against Astro 5. npm installs **Astro 7**, and three things differ. All are resolved in the committed code; this section exists so a later session does not re-litigate them.
+
+**1. Pinned to `astro@7.3.1`, not `^7`.** Version 7.3.0 ships a `vite-plugin-assets.js` that emits `import … from "astro/_internal/logger"`, a path its own `package.json` does not export. Any build touching `astro:assets` — i.e. every build here — fails with a rolldown resolve error. 7.3.1 removes that import. Do not float back to 7.3.0.
+
+**2. No `remark-breaks`, and none needed.** Astro 7's default Markdown processor is Sätteri, which has no `breaks` feature and takes visitor-style plugins rather than unified ones. `@astrojs/markdown-remark` would restore the unified pipeline but is the package that pulls in the broken import above.
+
+The simpler answer turned out to be better: a CommonMark soft break already emits a literal newline into the HTML, so `white-space: pre-line` scoped to writing paragraphs reproduces the old rendering exactly. Verified in the built output — the Bengali poem's `<p>` contains real newline characters between its lines. Same result as remark-breaks, one less dependency, and it keeps the faster default pipeline. The rule is scoped to `p` rather than the container so whitespace *between* block elements does not become stray blank lines.
+
+**3. Two Astro constraints worth remembering.**
+- `getStaticPaths` is extracted into its own build chunk, so it cannot close over consts declared in the component frontmatter. Shared helpers must be imported from a module — which is why `tagSlug` lives in `src/lib/content.ts` and is imported by both the tag route and every page that links to a tag. That also guarantees a link can never point at a slug the build did not produce.
+- `CollectionKey` includes `pages`, which has no `date`. Anything that sorts or feeds by date uses the `DatedCollection` alias instead.
 
 ---
 

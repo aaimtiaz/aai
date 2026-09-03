@@ -7,7 +7,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "import:facebook": "node scripts/import-facebook.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.0",
@@ -19,5 +20,9 @@
     "dompurify": "^3.4.14",
     "marked": "^18.0.11",
     "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "typescript": "^6.0.3"
   }
 }

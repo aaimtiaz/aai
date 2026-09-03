@@ -1,5 +1,10 @@
 import { getCollection, type CollectionKey } from 'astro:content';
 
+/** Every collection except `pages`, which holds standalone prose (the home
+ *  bio) and deliberately has no date, tags or excerpt. Anything that sorts,
+ *  feeds or lists by date must use this, not CollectionKey. */
+export type DatedCollection = Exclude<CollectionKey, 'pages'>;
+
 /** Drafts render in `astro dev` so imported/unfinished posts are reviewable,
  *  and disappear from production builds and the sitemap. */
 export const published = ({ data }: { data: { draft: boolean } }) =>
@@ -11,7 +16,7 @@ export async function getPublished<K extends CollectionKey>(name: K) {
 
 /** Newest content date across every collection — the honest "last updated". */
 export async function siteUpdatedAt(): Promise<Date | undefined> {
-  const names: CollectionKey[] = ['writing', 'travel', 'research', 'teaching', 'outreach'];
+  const names: DatedCollection[] = ['writing', 'travel', 'research', 'teaching', 'outreach'];
   const all = await Promise.all(names.map((n) => getPublished(n)));
   const dates = all
     .flat()

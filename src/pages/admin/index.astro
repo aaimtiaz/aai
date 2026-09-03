@@ -1,0 +1,261 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Publish" noindex analytics={false}>
+  <div class="wrap admin">
+
+    <!-- Login -->
+    <section id="login-panel" hidden>
+      <h1>Publish</h1>
+      <p class="muted">
+        Paste a GitHub <strong>fine-grained personal access token</strong> scoped to the
+        <code>aaimtiaz.github.io</code> repository only, with
+        <strong>Contents: Read and write</strong> and nothing else.
+        <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create one &#8599;</a>
+      </p>
+      <label for="token">GitHub token</label>
+      <input type="password" id="token" autocomplete="off" placeholder="github_pat_..." />
+      <label class="checkbox">
+        <input type="checkbox" id="remember" /> Stay signed in on this device
+      </label>
+      <button class="btn" id="login-btn">Sign in</button>
+      <p id="login-status" class="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- Editor -->
+    <section id="app" hidden>
+      <header class="admin__bar">
+        <h1 id="editor-title">New post</h1>
+        <div class="admin__bar-actions">
+          <span id="whoami" class="muted small"></span>
+          <button class="btn btn--ghost" id="logout-btn" type="button">Sign out</button>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="Sections">
+        <button type="button" data-view="editor" aria-pressed="true">Write</button>
+        <button type="button" data-view="list" aria-pressed="false">Posts</button>
+      </nav>
+
+      <!-- Editor view -->
+      <div id="view-editor">
+        <form id="post-form">
+          <div class="row">
+            <div>
+              <label for="collection">Section</label>
+              <select id="collection">
+                <option value="writing">Writing</option>
+                <option value="travel">Travel</option>
+                <option value="outreach">Outreach</option>
+                <option value="teaching">Teaching</option>
+              </select>
+            </div>
+            <div>
+              <label for="lang">Language</label>
+              <select id="lang">
+                <option value="en">English</option>
+                <option value="bn">বাংলা</option>
+              </select>
+            </div>
+          </div>
+
+          <label for="title">Title</label>
+          <input type="text" id="title" required autocapitalize="sentences" />
+
+          <label for="slug">URL slug <span class="muted">— filled in from the title</span></label>
+          <input type="text" id="slug" />
+
+          <div class="row" data-only="writing">
+            <div>
+              <label for="form-field">Form</label>
+              <select id="form-field">
+                <option value="poem">Poem</option>
+                <option value="prose">Prose</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="date">Date</label>
+              <input type="date" id="date" />
+            </div>
+            <div>
+              <label for="dateNote">Date note <span class="muted">— optional</span></label>
+              <input type="text" id="dateNote" placeholder="e.g. খুব সম্ভবত ২০২২" />
+            </div>
+          </div>
+          <p class="hint">
+            The date orders posts and feeds. If the real date is a guess, put the honest
+            version in the note — that is what readers actually see.
+          </p>
+
+          <div data-only="travel">
+            <label for="location">Place</label>
+            <input type="text" id="location" placeholder="e.g. Bandarban" />
+          </div>
+
+          <label for="image">Cover image</label>
+          <input type="file" id="image" accept="image/*" />
+          <p class="hint" id="image-info">Resized automatically before upload — pick the full-size photo.</p>
+
+          <label for="coverCaption">Image caption <span class="muted">— optional</span></label>
+          <input type="text" id="coverCaption" />
+
+          <label for="excerpt">Excerpt <span class="muted">— optional, shown on cards</span></label>
+          <input type="text" id="excerpt" />
+
+          <label for="tags">Tags <span class="muted">— comma separated</span></label>
+          <input type="text" id="tags" list="known-tags" />
+          <datalist id="known-tags"></datalist>
+
+          <div class="editor-head">
+            <label for="body">Post</label>
+            <div class="tabs tabs--small">
+              <button type="button" data-pane="write" aria-pressed="true">Write</button>
+              <button type="button" data-pane="preview" aria-pressed="false">Preview</button>
+            </div>
+          </div>
+
+          <div class="toolbar" id="toolbar">
+            <button type="button" data-wrap="**" title="Bold" aria-label="Bold"><b>B</b></button>
+            <button type="button" data-wrap="_" title="Italic" aria-label="Italic"><i>I</i></button>
+            <button type="button" data-prefix="## " title="Heading" aria-label="Heading">H2</button>
+            <button type="button" data-prefix="&gt; " title="Quote" aria-label="Quote">&rdquo;</button>
+            <button type="button" data-prefix="- " title="Bullet list" aria-label="Bullet list">&bull;</button>
+            <button type="button" data-link title="Link" aria-label="Link">Link</button>
+          </div>
+
+          <textarea id="body" rows="14" required autocapitalize="sentences"
+                    placeholder="Write here. Markdown works, and a single newline stays a line break — so poems look the way you type them."></textarea>
+          <div id="preview" class="preview" hidden></div>
+
+          <label for="note">Closing note <span class="muted">— optional</span></label>
+          <textarea id="note" rows="2"></textarea>
+
+          <p id="autosave" class="muted small"></p>
+
+          <div class="actions">
+            <button class="btn" id="publish-btn" type="submit">Publish</button>
+            <button class="btn btn--ghost" id="draft-btn" type="button">Save draft</button>
+            <button class="btn btn--ghost" id="new-btn" type="button">New</button>
+            <button class="btn btn--danger" id="delete-btn" type="button" hidden>Delete</button>
+          </div>
+        </form>
+
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+      </div>
+
+      <!-- Post list -->
+      <div id="view-list" hidden>
+        <div class="list-head">
+          <label class="checkbox"><input type="checkbox" id="only-drafts" /> Imported and draft only</label>
+          <button class="btn btn--ghost" id="refresh-btn" type="button">Refresh</button>
+        </div>
+        <p id="list-status" class="muted" role="status" aria-live="polite">Loading...</p>
+        <ul id="post-list" class="post-list"></ul>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<script src="../../scripts/admin/main.ts"></script>
+
+<style>
+  .admin { max-width: 44rem; }
+  .admin h1 { font-size: var(--step-3); }
+  .muted { color: var(--text-muted); }
+  .small { font-size: var(--step--1); }
+
+  .admin :global(label) {
+    display: block; font-weight: 600; margin-block: var(--space-5) var(--space-2);
+  }
+  .admin :global(label.checkbox) {
+    font-weight: 400; display: flex; align-items: center; gap: var(--space-2); margin-block: var(--space-4);
+  }
+  .admin :global(input[type="text"]),
+  .admin :global(input[type="password"]),
+  .admin :global(input[type="date"]),
+  .admin :global(input[type="file"]),
+  .admin :global(textarea),
+  .admin :global(select) {
+    width: 100%;
+    /* 16px minimum: below this, iOS Safari zooms on focus and the layout jumps. */
+    font-size: 16px;
+    padding: var(--space-3);
+    min-height: 44px;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  }
+  .admin :global(textarea) { resize: vertical; line-height: 1.7; }
+  .admin :global(input[type="checkbox"]) { width: auto; min-height: 0; }
+
+  .row { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
+  .hint { color: var(--text-muted); font-size: var(--step--1); margin-block-start: var(--space-2); }
+
+  .admin__bar { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+  .admin__bar-actions { display: flex; align-items: center; gap: var(--space-3); }
+
+  .tabs { display: flex; gap: var(--space-2); margin-block: var(--space-5); }
+  .tabs button {
+    min-height: 44px; padding: 0 var(--space-4); cursor: pointer;
+    background: none; border: 1px solid var(--border); border-radius: 999px; color: var(--text-muted);
+  }
+  .tabs button[aria-pressed="true"] { background: var(--accent-subtle); color: var(--accent); border-color: var(--accent); }
+  .tabs--small { margin: 0; }
+
+  .editor-head { display: flex; justify-content: space-between; align-items: end; gap: var(--space-4); flex-wrap: wrap; }
+  .toolbar { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-block: var(--space-2); }
+  .toolbar button {
+    min-width: 44px; min-height: 44px; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+  }
+  .toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+
+  .preview {
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: var(--space-4); min-height: 12rem; background: var(--surface);
+  }
+  /* The same rule the real post page uses, so the preview tells the truth
+     about where poem lines break. */
+  .preview :global(p) { white-space: pre-line; }
+  .preview :global(p + p) { margin-block-start: var(--space-4); }
+
+  .actions {
+    display: flex; gap: var(--space-3); flex-wrap: wrap;
+    margin-block-start: var(--space-6);
+    position: sticky; bottom: 0; padding-block: var(--space-4);
+    background: linear-gradient(to top, var(--bg) 70%, transparent);
+  }
+  .btn {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-5);
+    border: none; border-radius: var(--radius-sm); cursor: pointer;
+    background: var(--accent); color: var(--accent-contrast); font-weight: 550;
+    text-decoration: none;
+  }
+  .btn:hover { background: var(--accent-hover); }
+  .btn--ghost { background: none; color: var(--accent); border: 1px solid var(--border-strong); }
+  .btn--ghost:hover { background: var(--surface); }
+  .btn--danger { background: none; color: var(--err); border: 1px solid var(--err); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .status {
+    margin-block-start: var(--space-4); padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm); white-space: pre-line;
+  }
+  .status:empty { display: none; }
+  .status.ok { background: var(--ok-subtle); color: var(--ok); border: 1px solid var(--ok); }
+  .status.err { background: var(--err-subtle); color: var(--err); border: 1px solid var(--err); }
+  .status.busy { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
+
+  .list-head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+  .post-list { list-style: none; padding: 0; display: grid; gap: var(--space-3); margin-block-start: var(--space-4); }
+  .post-list :global(li) {
+    display: flex; justify-content: space-between; align-items: center; gap: var(--space-3);
+    padding: var(--space-3) var(--space-4); flex-wrap: wrap;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface);
+  }
+  .post-list :global(.post-list__meta) { color: var(--text-muted); font-size: var(--step--1); }
+  .post-list :global(.post-list__actions) { display: flex; gap: var(--space-2); }
+</style>
