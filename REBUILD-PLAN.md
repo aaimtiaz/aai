@@ -55,6 +55,8 @@
 **Phase 5 — Polish**
 - [x] Teaching and outreach index pages with graceful empty states; `/cv/` page; dark-mode toggle with a pre-paint inline script; `Person` + `ScholarlyArticle` + `BlogPosting` JSON-LD; generated OG image; `_redirects`; `_headers`
 - [x] Accessibility built in: skip link, global `:focus-visible`, `lang="bn"` on Bengali posts, no `text-align: justify`, `prefers-reduced-motion`, 44px targets, disclosure nav instead of a modal
+- [x] Teaching and outreach seeded as **drafts** from facts already on the old site, so both pages are a fillable scaffold rather than an empty stub. They stay invisible in production until `draft: false`.
+- [x] Verified in the built CSS: skip link is the first element in `<body>`, `:focus-visible` rules present, both dark-mode blocks emitted (system + explicit toggle), zero `text-align: justify`
 - [ ] Run axe DevTools and Lighthouse against the Cloudflare preview (needs a browser + the deploy)
 
 **Phase 6 — Admin** — built at `/admin/`, needs a real token to exercise
