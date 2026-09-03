@@ -17,6 +17,21 @@ export const BRANCH = 'main';
 const API = 'https://api.github.com';
 const TOKEN_KEY = 'admin_gh_token';
 
+/** Run `work` over `items` at most `n` at a time. */
+async function mapLimit<T, R>(items: T[], n: number, work: (t: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(n, items.length) }, async () => {
+      while (next < items.length) {
+        const i = next++;
+        out[i] = await work(items[i]);
+      }
+    }),
+  );
+  return out;
+}
+
 export type FileWrite =
   /** content === null deletes the path. */
   { path: string; content: string | null; encoding?: 'utf8' | 'base64' };
@@ -123,8 +138,10 @@ export async function commitFiles(
   const baseTree: string = baseCommit.tree.sha;
 
   step(`Uploading ${files.length} file${files.length === 1 ? '' : 's'}…`);
-  const tree = await Promise.all(
-    files.map(async (f) => {
+  // Bounded. An unbounded Promise.all here meant a bulk publish of 100 drafts
+  // fired 100 simultaneous blob POSTs, which is what GitHub's secondary rate
+  // limiter answers with a 403.
+  const tree = await mapLimit(files, 6, async (f) => {
       if (f.content === null) {
         // A null sha removes the path in the new tree.
         return { path: f.path, mode: '100644', type: 'blob', sha: null };
@@ -138,8 +155,7 @@ export async function commitFiles(
         }),
       });
       return { path: f.path, mode: '100644', type: 'blob', sha: blob.sha };
-    }),
-  );
+  });
 
   step('Building tree…');
   const newTree = await gh(`/repos/${OWNER}/${REPO}/git/trees`, {
@@ -179,7 +195,11 @@ export async function listContent(): Promise<{
   const head: string = ref.object.sha;
   const tree = await gh(`/repos/${OWNER}/${REPO}/git/trees/${head}?recursive=1`);
   const files = (tree.tree as any[])
-    .filter((n) => n.type === 'blob' && /^src\/content\/[^/]+\/[^/]+\.md$/.test(n.path))
+    // src/content/pages/ holds standalone page prose (the home bio), not
+    // posts. It was appearing as a row in a section the filter does not offer.
+    .filter((n) => n.type === 'blob'
+      && /^src\/content\/[^/]+\/[^/]+\.md$/.test(n.path)
+      && !n.path.startsWith('src/content/pages/'))
     .map((n) => ({ path: n.path, sha: n.sha }));
   return { head, files };
 }

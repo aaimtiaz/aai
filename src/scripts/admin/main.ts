@@ -1,5 +1,3 @@
-import { marked } from 'marked';
-import DOMPurify from 'dompurify';
 import {
   getToken, setToken, clearToken, verifyToken,
   commitFiles, listContent, readFile, type FileWrite,
@@ -98,7 +96,7 @@ document.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((btn) => {
 /* --------------------------------------------------------- write / preview */
 
 document.querySelectorAll<HTMLButtonElement>('[data-pane]').forEach((btn) => {
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', async () => {
     const pane = btn.dataset.pane!;
     document.querySelectorAll<HTMLButtonElement>('[data-pane]').forEach((b) =>
       b.setAttribute('aria-pressed', String(b === btn)),
@@ -106,6 +104,13 @@ document.querySelectorAll<HTMLButtonElement>('[data-pane]').forEach((btn) => {
     const body = $<HTMLTextAreaElement>('body');
     const preview = $('preview');
     if (pane === 'preview') {
+      // Loaded on demand. Together these are most of the bundle, and they are
+      // only ever used here — importing them eagerly meant every visit to the
+      // Posts tab parsed ~180 KB of JS it never called.
+      const [{ marked }, { default: DOMPurify }] = await Promise.all([
+        import('marked'),
+        import('dompurify'),
+      ]);
       // Rendered, then sanitised, then injected — the input is the author's
       // own Markdown, but sanitising keeps a pasted <script> inert.
       preview.innerHTML = DOMPurify.sanitize(marked.parse(body.value, { async: false }) as string);
@@ -400,6 +405,9 @@ interface Row {
   imported: boolean;
   excerpt: string;
   cover?: string;
+  /** Was missing from this interface, so fetchRows never copied it and the
+   *  #known-tags datalist has been empty since it was written. */
+  tags: string[];
 }
 
 let rows: Row[] = [];
@@ -422,13 +430,16 @@ async function mapLimit<T, R>(items: T[], n: number, work: (t: T) => Promise<R>)
   return out;
 }
 
+// localStorage, not sessionStorage: the cache used to die with the tab, so
+// closing and reopening the admin paid for every row again. It is keyed on
+// the commit SHA, so it still self-invalidates on any commit.
 const CACHE_KEY = 'admin_rows_cache';
 
 async function fetchRows(treeKey: string, onProgress: (done: number, total: number) => void) {
   // Cached against the tree SHA: one slow load per session, instant after,
   // and automatically invalid the moment anything is committed.
   try {
-    const hit = JSON.parse(sessionStorage.getItem(CACHE_KEY) ?? 'null');
+    const hit = JSON.parse(localStorage.getItem(CACHE_KEY) ?? 'null');
     if (hit?.key === treeKey) return hit.rows as Row[];
   } catch {}
 
@@ -445,13 +456,16 @@ async function fetchRows(treeKey: string, onProgress: (done: number, total: numb
       lang: data.lang ?? 'en',
       draft: data.draft === true,
       imported: data.source === 'facebook',
-      excerpt: (data.excerpt ?? body ?? '').replace(/\s+/g, ' ').trim().slice(0, 140),
+      // Truncate before scanning. The other order ran a whitespace regex over
+      // the whole body — up to ~15 KB — and then kept 140 characters of it.
+      excerpt: (data.excerpt ?? body ?? '').slice(0, 400).replace(/\s+/g, ' ').trim().slice(0, 140),
       cover: data.cover,
+      tags: Array.isArray(data.tags) ? data.tags : [],
     } as Row;
   });
 
   try {
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ key: treeKey, rows: result }));
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ key: treeKey, rows: result }));
   } catch {}
   return result;
 }
@@ -470,16 +484,31 @@ function visibleRows(): Row[] {
     .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 }
 
-function renderList() {
-  const list = $<HTMLUListElement>('post-list');
+/**
+ * Update only the things that change when the selection changes.
+ *
+ * This used to call renderList(), which begins by emptying the list — so
+ * ticking one checkbox tore down and rebuilt ~1,880 elements and ~750 event
+ * listeners to update a counter. That was the lag.
+ */
+function syncSelectionUI() {
   const shown = visibleRows();
-  list.innerHTML = '';
-
   $('list-status').textContent =
     `${shown.length} of ${rows.length} post${rows.length === 1 ? '' : 's'}` +
     (selected.size ? ` · ${selected.size} selected` : '');
   $('bulk-bar').hidden = selected.size === 0;
   $('bulk-count').textContent = String(selected.size);
+}
+
+function renderList() {
+  const list = $<HTMLUListElement>('post-list');
+  const shown = visibleRows();
+  list.innerHTML = '';
+  syncSelectionUI();
+
+  // Assemble off-document and attach once, rather than touching the live DOM
+  // 188 times and forcing a layout on each.
+  const frag = document.createDocumentFragment();
 
   for (const r of shown) {
     const li = document.createElement('li');
@@ -490,7 +519,7 @@ function renderList() {
     check.setAttribute('aria-label', `Select ${r.title}`);
     check.addEventListener('change', () => {
       check.checked ? selected.add(r.path) : selected.delete(r.path);
-      renderList();
+      syncSelectionUI();   // NOT renderList — see the note on syncSelectionUI
     });
 
     const left = document.createElement('div');
@@ -535,8 +564,9 @@ function renderList() {
 
     actions.append(pub, edit, del);
     li.append(check, left, actions);
-    list.append(li);
+    frag.append(li);
   }
+  list.append(frag);
 }
 
 async function loadList(force = false) {
@@ -547,7 +577,7 @@ async function loadList(force = false) {
       const listing = await listContent();
       inventory = listing.files;
       headSha = listing.head;
-      if (force) { try { sessionStorage.removeItem(CACHE_KEY); } catch {} }
+      if (force) { try { localStorage.removeItem(CACHE_KEY); } catch {} }
     }
     // Keyed on the commit SHA. An earlier version hashed only the first 64
     // characters of the joined blob SHAs plus the file count, so a change to
@@ -558,7 +588,7 @@ async function loadList(force = false) {
     });
 
     const tags = new Set<string>();
-    rows.forEach((r) => (r as any).tags?.forEach?.((t: string) => tags.add(t)));
+    rows.forEach((r) => r.tags.forEach((t) => tags.add(t)));
     $('known-tags').innerHTML = [...tags].map((t) => `<option value="${t}"></option>`).join('');
 
     selected.clear();
@@ -588,7 +618,7 @@ async function setDraft(targets: Row[], draft: boolean) {
 
     targets.forEach((t) => { t.draft = draft; });
     selected.clear();
-    try { sessionStorage.removeItem(CACHE_KEY); } catch {}
+    try { localStorage.removeItem(CACHE_KEY); } catch {}
     inventory = []; headSha = '';
     renderList();
     setStatus(statusEl, `${verb}ed ${targets.length}. The site rebuilds in about a minute.`, 'ok');
@@ -621,7 +651,7 @@ async function removeRows(targets: Row[]) {
     const gone = new Set(targets.map((t) => t.path));
     rows = rows.filter((r) => !gone.has(r.path));
     selected.clear();
-    try { sessionStorage.removeItem(CACHE_KEY); } catch {}
+    try { localStorage.removeItem(CACHE_KEY); } catch {}
     inventory = []; headSha = '';
     if (editingPath && gone.has(editingPath)) resetForm();
     renderList();
