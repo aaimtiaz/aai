@@ -5,7 +5,6 @@ lang: en
 location:
   name: Saint Martin's Island
 cover: ./images/thinking-is-more-interesting-than-knowing-but-less.webp
-coverAlt: ""
 coverCaption: "Photograph: তৌফিকুল ইসলাম"
 gallery:
   - src: ./images/thinking-is-more-interesting-than-knowing-but-less-2.webp
@@ -19,7 +18,7 @@ gallery:
 excerpt: '"Thinking is more interesting than knowing but less interesting than looking." –Johann Wolfgang #Saint_Martins_Island'
 tags:
   - travel
-draft: true
+draft: false
 source: facebook
 ---
 
