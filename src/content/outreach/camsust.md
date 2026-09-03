@@ -1,5 +1,5 @@
 ---
-title: "CAM-SUST — Study Circle Secretary, then President"
+title: CAM-SUST — Study Circle Secretary, then President
 date: 2019-08-29
 dateNote: August 2019 – July 2022
 org: Copernicus Astronomical Memorial of SUST
@@ -7,8 +7,11 @@ role: President (9th EC); Study Circle Secretary (8th EC)
 eventDate: 2021-03-06
 lang: en
 excerpt: Three years running a university astronomy society — study circles, stargazing nights, talks, a magazine, and a science roadshow.
-tags: ["outreach", "CAM-SUST", "science communication"]
-draft: true
+tags:
+  - outreach
+  - CAM-SUST
+  - science communication
+draft: false
 source: original
 ---
 

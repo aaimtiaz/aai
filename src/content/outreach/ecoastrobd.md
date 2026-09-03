@@ -1,5 +1,5 @@
 ---
-title: "EcoAstroBD — affordable astronomy kits for Bangladeshi schools"
+title: EcoAstroBD — affordable astronomy kits for Bangladeshi schools
 date: 2025-12-01
 dateNote: December 2025 – present
 org: EcoAstroBD, funded by the IAU Office of Astronomy for Development
@@ -7,8 +7,11 @@ role: Project Facilitator and Consultant
 eventDate: 2025-12-01
 lang: en
 excerpt: Tackling STEM inequality with low-cost, eco-friendly astronomy kits, launched across three districts.
-tags: ["outreach", "IAU-OAD", "STEM equity"]
-draft: true
+tags:
+  - outreach
+  - IAU-OAD
+  - STEM equity
+draft: false
 source: original
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: "Star Gazing Night at Reaz Public School"
+title: Star Gazing Night at Reaz Public School
 date: 2025-01-27
 dateNote: January 2025
 org: Reaz Public School, Narayanganj
@@ -7,8 +7,11 @@ role: Organiser
 eventDate: 2025-01-27
 lang: en
 excerpt: Telescopes on the school grounds, and a lot of students seeing Jupiter for the first time.
-tags: ["outreach", "schools", "stargazing"]
-draft: true
+tags:
+  - outreach
+  - schools
+  - stargazing
+draft: false
 source: original
 ---
 
