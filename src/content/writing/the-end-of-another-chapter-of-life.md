@@ -3,6 +3,8 @@ title: The end of another chapter of life
 date: 2024-11-03
 lang: en
 form: prose
+cover: ./images/the-end-of-another-chapter-of-life.webp
+coverAlt: ""
 excerpt: The end of another chapter of life! A sincere nod to my guiding stars, Nicha Leethochawalit (NARIT, Thailand) and Anock Somadder (SUST), for their unw
 tags: []
 draft: true

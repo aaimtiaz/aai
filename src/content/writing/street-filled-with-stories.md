@@ -3,6 +3,8 @@ title: Street! filled with stories
 date: 2022-09-23
 lang: en
 form: poem
+cover: ./images/street-filled-with-stories.webp
+coverAlt: ""
 excerpt: Street! filled with stories. Yet no one to pay attention, Except for the writer. .....................................................................
 tags: []
 draft: true

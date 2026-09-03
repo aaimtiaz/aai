@@ -3,6 +3,8 @@ title: Thanks to Arif Ahmed Sir and the DIU Astrophysics Center for hostin…
 date: 2025-08-08
 lang: en
 form: prose
+cover: ./images/thanks-to-arif-ahmed-sir-and-the-diu-astrophysics-.webp
+coverAlt: ""
 excerpt: Thanks to Arif Ahmed Sir and the DIU Astrophysics Center for hosting such an amazing workshop on data-driven astronomy! Also, huge thanks to Rafee vai
 tags: []
 draft: true

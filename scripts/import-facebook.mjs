@@ -185,6 +185,43 @@ let financialSkipped = 0;
 const FINANCIAL = /routing number|account (?:no|number)|a\/c\s*(?:no|#)|রকেট নম্বর|বিকাশ নম্বর|নগদ নম্বর|bkash number|rocket number/i;
 const hasFinancialDetails = (body) => FINANCIAL.test(body);
 
+/**
+ * Pull a photo credit out of a caption.
+ *
+ * Several of these galleries were shot by friends and the captions say so —
+ * `P©তৌফিকুল ইসলাম`, `©Muksudul Hasan Srabon`, `ফটো ক্রেডিট: …`. Publishing
+ * someone else's photograph without their name on it is not acceptable, so
+ * where a credit exists it is carried through to coverCaption.
+ */
+function creditFrom(description) {
+  if (!description) return undefined;
+  // Redact FIRST. A caption is untrusted text like any other: the first pass
+  // of this function published "@[100009271703008:2048:Tashin Ahammad Omi]"
+  // and a facebook.com profile URL straight into coverCaption, because it
+  // read photo.description without putting it through the same pass the post
+  // bodies get.
+  const text = redact(tidy(String(description)));
+  const m =
+    text.match(/(?:P\s*)?©\s*([^\n,|]{2,60})/) ??
+    text.match(/(?:ফটো\s*ক্রেডিট|photo\s*credit|pc)\s*[:：(]\s*([^\n,|)]{2,60})/i);
+  if (!m) return undefined;
+
+  const who = m[1]
+    .replace(/[️‍]/g, '')      // emoji variation selectors
+    .replace(/^[\s:：.\-–—]+/, '')        // leading punctuation the regex kept
+    .replace(/[\s:：.\-–—]+$/, '')
+    .trim();
+
+  // Anything still carrying brackets, a URL, or digits is a mangled remnant
+  // rather than a name — drop it rather than publish a half-redacted string.
+  if (!who || who.length < 2) return undefined;
+  if (/[\[\]<>]|https?:|\d/.test(who)) return undefined;
+  // A credit should read as a name, not a sentence.
+  if (who.split(/\s+/).length > 6) return undefined;
+
+  return `Photograph: ${who}`;
+}
+
 function titleFrom(body) {
   const firstLine = body.split('\n').map((l) => l.trim()).find(Boolean) ?? '';
   // Prefer a sentence boundary; Bengali uses । (danda) as its full stop.
@@ -241,14 +278,14 @@ async function writeImage(src, destPath) {
   try {
     const meta = await sharp(src).metadata();
     let pipe = sharp(src).rotate();                     // honour EXIF orientation
-    if (Math.max(meta.width, meta.height) > 2000) {
+    if (Math.max(meta.width, meta.height) > 1600) {
       pipe = pipe.resize({
-        width: meta.width >= meta.height ? 2000 : null,
-        height: meta.height > meta.width ? 2000 : null,
+        width: meta.width >= meta.height ? 1600 : null,
+        height: meta.height > meta.width ? 1600 : null,
         withoutEnlargement: true,
       });
     }
-    await pipe.webp({ quality: 80 }).toFile(destPath);
+    await pipe.webp({ quality: 76 }).toFile(destPath);
     imgBefore += statSync(src).size;
     imgAfter += statSync(destPath).size;
     return true;
@@ -328,8 +365,33 @@ console.log(`  ${unique.length} after dedupe (${candidates.length - unique.lengt
 
 /* -------------------------------------------------------------- write */
 
-let written = 0, skipped = 0, withCover = 0;
-const LONG = 800;   // only long-form posts earn a cover image; see note below
+let written = 0, skipped = 0, withCover = 0, galleryTotal = 0;
+
+/**
+ * Every post that has a photo gets one.
+ *
+ * The first pass gated covers on an 800-character body, which turned out to
+ * cover 10 posts out of the 83 that actually have a photo in the export — so
+ * 73 posts rendered image-less while their photo sat on disk. 59 of those are
+ * short posts, which is precisely the class where the photo IS the content.
+ *
+ * MAX_IMAGES is a hard cap per post, and it cuts both ways: it also shrinks
+ * the travel albums, where a single album was carrying 32 images.
+ */
+const MAX_IMAGES = 5;
+
+/**
+ * Writing posts take a cover and nothing more.
+ *
+ * The cap above is what the owner asked for, and it is the right ceiling — but
+ * a ceiling is not a target. Giving all 179 writing drafts four extra images
+ * each cost 34.7 MB, and these are drafts that will mostly be deleted, while
+ * git keeps every deleted blob forever. A cover is what fixes the actual
+ * complaint (posts showing no image at all); galleries belong on travel posts,
+ * where the photographs are the point. Any specific post can have more added
+ * from /admin/ later.
+ */
+const MAX_IMAGES_WRITING = 1;
 
 for (const c of unique.slice(0, LIMIT)) {
   const form = guessForm(c.body);
@@ -342,21 +404,28 @@ for (const c of unique.slice(0, LIMIT)) {
   const mdPath = `${dir}/${slug}.md`;
   if (existsSync(mdPath)) { skipped++; continue; }
 
-  // Media policy is deliberately restrictive: deleted images stay in git
-  // history forever, and most of these drafts will be deleted. Only long-form
-  // posts get a cover; anything else can have one added later from /admin/.
-  let cover;
-  if (c.body.length >= LONG && c.photos[0]) {
-    const src = findMedia(c.photos[0].uri);
-    if (src) {
-      let ok = true;
-      if (!DRY_RUN) {
-        mkdirSync(`${dir}/images`, { recursive: true });
-        ok = await writeImage(src, `${dir}/images/${slug}.webp`);
-      }
-      // Only reference the cover if it really landed, or the build fails on a
-      // frontmatter image() pointing at a file that does not exist.
-      if (ok) { cover = `./images/${slug}.webp`; withCover++; }
+  // Cover first, then up to MAX_IMAGES-1 more as a gallery.
+  let cover, coverCaption;
+  const gallery = [];
+  for (const [i, photo] of c.photos.slice(0, MAX_IMAGES_WRITING).entries()) {
+    const src = findMedia(photo.uri);
+    if (!src) continue;
+    const name = i === 0 ? `${slug}.webp` : `${slug}-${i + 1}.webp`;
+    let ok = true;
+    if (!DRY_RUN) {
+      mkdirSync(`${dir}/images`, { recursive: true });
+      ok = await writeImage(src, `${dir}/images/${name}`);
+    }
+    // Only reference an image that really landed, or the build fails on a
+    // frontmatter image() pointing at a file that does not exist.
+    if (!ok) continue;
+    if (i === 0) {
+      cover = `./images/${name}`;
+      coverCaption = creditFrom(photo.description);
+      withCover++;
+    } else {
+      gallery.push({ src: `./images/${name}`, alt: '' });
+      galleryTotal++;
     }
   }
 
@@ -366,6 +435,7 @@ for (const c of unique.slice(0, LIMIT)) {
     lang: detectLang(c.body),
     form,
     ...(cover ? { cover, coverAlt: '' } : {}),
+    ...(coverCaption ? { coverCaption } : {}),
     excerpt: tidy(c.body).replace(/\s+/g, ' ').slice(0, 150),
     tags: c.kind === 'archive' ? ['unpublished'] : [],
     draft: true,                 // never live from an automated import
@@ -390,8 +460,11 @@ for (const a of albums) {
   const mdPath = `${dir}/${slug}.md`;
   if (existsSync(mdPath)) { skipped++; continue; }
 
+  // Same cap as posts. One album was carrying 32 images; five is enough to
+  // establish a place, and the rest is repo weight that git keeps forever.
   const gallery = [];
-  for (const [i, photo] of a.photos.entries()) {
+  let albumCredit;
+  for (const [i, photo] of a.photos.slice(0, MAX_IMAGES).entries()) {
     const src = findMedia(photo.uri);
     if (!src) continue;
     const name = `${slug}-${String(i + 1).padStart(2, '0')}.webp`;
@@ -401,6 +474,7 @@ for (const a of albums) {
       ok = await writeImage(src, `${dir}/images/${name}`);
     }
     if (!ok) continue;
+    albumCredit ??= creditFrom(photo.description);
     gallery.push({ src: `./images/${name}`, alt: '' });
     galleryImages++;
   }
@@ -420,6 +494,7 @@ for (const a of albums) {
     location: { name: a.name },
     cover: gallery[0].src,
     coverAlt: '',
+    ...(albumCredit ? { coverCaption: albumCredit } : {}),
     gallery: gallery.slice(1),
     excerpt: `${gallery.length} photographs.`,
     tags: ['travel'],
@@ -443,7 +518,7 @@ for (const a of albums) {
 const mb = (n) => (n / 1024 / 1024).toFixed(2) + ' MB';
 console.log(`
 ${DRY_RUN ? 'DRY RUN — nothing was written.' : 'Done.'}
-  writing drafts   ${written}   (${withCover} with a cover image)
+  writing drafts   ${written}   (${withCover} with a cover, ${galleryTotal} extra images)
   travel drafts    ${albumsWritten}   (${galleryImages} gallery images)
   skipped          ${skipped}   (already existed)
   media            ${imgBefore ? `${mb(imgBefore)} -> ${mb(imgAfter)}` : 'none'}${imgSkipped ? `, ${imgSkipped} skipped` : ''}

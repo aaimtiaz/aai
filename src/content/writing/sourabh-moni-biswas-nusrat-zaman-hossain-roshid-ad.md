@@ -3,6 +3,8 @@ title: স্বাগত তীর্থ Sourabh Moni Biswas Nusrat Zaman Hossa
 date: 2022-08-11
 lang: bn
 form: prose
+cover: ./images/sourabh-moni-biswas-nusrat-zaman-hossain-roshid-ad.webp
+coverAlt: ""
 excerpt: স্বাগত তীর্থ Sourabh Moni Biswas Nusrat Zaman Hossain Roshid Adnan Shahriar Nafisa Nujhat Tamsi Ali Taherin Hoq Jahura Akter Meem Samira Farzana Hasna
 tags: []
 draft: true

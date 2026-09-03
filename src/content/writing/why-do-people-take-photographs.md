@@ -3,6 +3,8 @@ title: Why do people take photographs
 date: 2025-06-21
 lang: en
 form: prose
+cover: ./images/why-do-people-take-photographs.webp
+coverAlt: ""
 excerpt: Why do people take photographs? Maybe it’s the quiet fear that the moment may never return. Or perhaps a moment feels incomplete until it’s shared wit
 tags: []
 draft: true

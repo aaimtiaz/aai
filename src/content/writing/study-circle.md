@@ -3,6 +3,8 @@ title: "#Study_Circle"
 date: 2021-12-09
 lang: en
 form: poem
+cover: ./images/study-circle.webp
+coverAlt: ""
 excerpt: "#Study_Circle Radio astronomy is the study of the stars in the radio frequency range. Nowadays it is considered one of the most advanced branches of a"
 tags: []
 draft: true

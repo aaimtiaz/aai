@@ -3,6 +3,8 @@ title: "#Cycle_Ride"
 date: 2023-01-31
 lang: en
 form: prose
+cover: ./images/cycle-ride.webp
+coverAlt: ""
 excerpt: "#Cycle_Ride ~115km, Jaintapur, Sylhet, 21 Jan 23 Life moves pretty fast, you don't stop and look around once in a while, you could miss it. Remember, "
 tags: []
 draft: true

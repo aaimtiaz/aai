@@ -3,6 +3,8 @@ title: Thanks a lot who made my stay beautiful in Sylhet
 date: 2024-02-06
 lang: en
 form: poem
+cover: ./images/thanks-a-lot-who-made-my-stay-beautiful-in-sylhet.webp
+coverAlt: ""
 excerpt: Thanks a lot who made my stay beautiful in Sylhet. Good-byes are opportunities. That lets you feel how deep the roots are. So enjoy it, mate!!! By the
 tags: []
 draft: true
