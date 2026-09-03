@@ -19,13 +19,12 @@ export const site = {
 
   /** Scholarly identity. Empty strings are skipped by the UI and by JSON-LD
    *  `sameAs`, so an unknown profile renders nothing rather than a dead link.
-   *  TODO(owner): fill these in — they are the primary discovery paths for an
-   *  academic and are currently absent from the site entirely. */
+   *  ADS and arXiv are still blank — add them when you have the URLs. */
   profiles: {
-    orcid: '',
-    scholar: '',
+    orcid: 'https://orcid.org/0009-0008-9598-3439',
+    scholar: 'https://scholar.google.com/citations?user=EnTN0hMAAAAJ&hl=en',
     ads: '',
-    github: '',
+    github: 'https://github.com/aaimtiaz',
     arxiv: '',
   },
 
