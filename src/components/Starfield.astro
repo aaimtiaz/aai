@@ -1,0 +1,78 @@
+---
+/**
+ * A faint field of stars for the hero.
+ *
+ * Inline SVG rather than an image: it costs no request, scales without
+ * artefacts, and inherits `currentColor` so it works in both themes without a
+ * second asset. Positions come from a seeded generator, so the field is
+ * identical on every build — a random one would churn the HTML on each deploy
+ * and produce noisy diffs.
+ */
+interface Props {
+  /** How many stars. Keep it low; this is texture, not scenery. */
+  count?: number;
+  class?: string;
+}
+const { count = 70, class: className } = Astro.props;
+
+// Mulberry32 — small, deterministic, good enough for scatter.
+function seeded(seed: number) {
+  return () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const rand = seeded(20260904);
+// Wide viewBox matching the banner's rough proportion, so the field reads
+// evenly across it without needing to be stretched.
+const W = 300, H = 100;
+const stars = Array.from({ length: count }, () => {
+  const r = rand();
+  return {
+    cx: +(rand() * W).toFixed(2),
+    cy: +(rand() * H).toFixed(2),
+    // Cube the roll so most stars are small and a few stand out.
+    r: +(0.12 + r * r * r * 0.5).toFixed(3),
+    o: +(0.25 + rand() * 0.6).toFixed(2),
+  };
+});
+---
+<!--
+  `slice` and NOT `none`: with preserveAspectRatio="none" the viewBox is
+  stretched to the element's box, which turns every circle into an ellipse —
+  on a wide, short banner that is a ~2.7x horizontal squash, and the stars
+  render as grey blobs. `slice` scales uniformly and crops instead.
+-->
+<svg
+  class:list={['starfield', className]}
+  viewBox={`0 0 ${W} ${H}`}
+  preserveAspectRatio="xMidYMid slice"
+  aria-hidden="true"
+  focusable="false"
+>
+  {stars.map((s) => (
+    <circle cx={s.cx} cy={s.cy} r={s.r} opacity={s.o} />
+  ))}
+</svg>
+
+<style>
+  .starfield {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: var(--accent-2);
+    /* Barely there in light mode — on ivory a visible starfield reads as
+       dirt rather than sky. Dark mode can afford more. */
+    opacity: 0.28;
+    pointer-events: none;
+  }
+  :global(:root[data-theme='dark']) .starfield { opacity: 0.55; fill: #dfe6f0; }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .starfield { opacity: 0.55; fill: #dfe6f0; }
+  }
+</style>

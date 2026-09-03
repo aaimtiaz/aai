@@ -1,100 +1,129 @@
 /* ==========================================================================
-   Design tokens — light is the default identity, dark is a variable swap.
-   Contrast ratios are computed against the paired --bg, not eyeballed.
+   Design tokens — "Observatory editorial"
+   --------------------------------------------------------------------------
+   Light is warm ivory, not white. The previous palette painted #ffffff across
+   >90% of every page and set body text at 17.9:1 — roughly double the AAA
+   floor. Maximum contrast on a maximum-brightness field is what reads as
+   glare, so both ends move: the ground warms and darkens slightly, the ink
+   lightens slightly, landing around 16:1.
+
+   Light also gains a real three-step surface ramp. Previously --surface-raised
+   was literally identical to --bg, so nothing could ever read as raised.
+
+   Contrast ratios below are computed, not estimated.
    ========================================================================== */
 
 :root {
-  /* Surfaces */
-  --bg: #ffffff;
-  --surface: #f7f8fa;
+  /* Surfaces — warm ivory ground, paper-white for raised elements */
+  --bg: #faf8f4;
+  --surface: #f3efe8;
   --surface-raised: #ffffff;
-  --border: #dde2e9;
-  --border-strong: #c3ccd8;
+  --border: #e4ded3;
+  --border-strong: #cdc4b5;
 
-  /* Text */
-  --text: #14181f;        /* 17.9:1 */
-  --text-muted: #4e5765;  /*  7.2:1 — replaces the old #777 at 3.86:1 (failed AA) */
+  /* Ink */
+  --text: #1c1a17;        /* 16.4:1 on --bg */
+  --text-muted: #5b5449;  /*  7.1:1 on --bg */
 
-  /* Accent */
-  --accent: #1550a8;      /*  7.7:1 */
-  --accent-hover: #10407f;
-  --accent-subtle: #eaf0fb;
+  /* Accent — ink blue for anything interactive */
+  --accent: #1b4965;      /*  9.1:1 on --bg */
+  --accent-hover: #123549;
+  --accent-subtle: #e8eef2;
   --accent-contrast: #ffffff;
+
+  /* Second accent — brass. Editorial furniture only: hairline rules,
+     small-caps labels, quiet markers. Never a link colour, so it is never
+     the only signal that something is clickable. */
+  --accent-2: #7d5622;    /*  6.1:1 on --bg */
+  --accent-2-subtle: #f0e7d8;
 
   /* Feedback */
   --ok: #1c6b34;
-  --ok-subtle: #e6f4ea;
+  --ok-subtle: #e4f0e6;
   --err: #a11d29;
-  --err-subtle: #fbeaec;
+  --err-subtle: #f8e9ea;
 
-  --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.06), 0 1px 3px rgb(16 24 40 / 0.08);
-  --shadow-md: 0 4px 12px rgb(16 24 40 / 0.08), 0 2px 4px rgb(16 24 40 / 0.04);
+  /* Warm-tinted shadows; a neutral grey shadow on ivory looks like dirt. */
+  --shadow-sm: 0 1px 2px rgb(60 48 32 / 0.05), 0 1px 3px rgb(60 48 32 / 0.07);
+  --shadow-md: 0 4px 14px rgb(60 48 32 / 0.09), 0 2px 4px rgb(60 48 32 / 0.05);
 
   color-scheme: light;
 }
 
-/* System preference, unless the reader explicitly chose light. */
+/* Follows the system, unless the reader explicitly chose light. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #0f1319;
-    --surface: #161b23;
-    --surface-raised: #1c222b;
-    --border: #2a323d;
-    --border-strong: #3a4552;
+    --bg: #12141a;
+    --surface: #191d26;
+    --surface-raised: #212734;
+    --border: #2b323f;
+    --border-strong: #3d4657;
 
-    --text: #e8ecf2;        /* 15.8:1 */
-    --text-muted: #a3aebf;  /*  8.3:1 */
+    --text: #e9e6df;        /* 14.8:1 */
+    --text-muted: #a8a396;  /*  7.3:1 */
 
-    --accent: #79aaf5;      /*  7.9:1 */
-    --accent-hover: #9dc2f8;
-    --accent-subtle: #16233a;
-    --accent-contrast: #0f1319;
+    --accent: #8fb8d6;      /*  8.8:1 */
+    --accent-hover: #b0cde3;
+    --accent-subtle: #17222e;
+    --accent-contrast: #12141a;
+
+    --accent-2: #c9a227;    /*  7.6:1 */
+    --accent-2-subtle: #241f12;
 
     --ok: #7ede9d;
     --ok-subtle: #12241a;
     --err: #f2a0a8;
     --err-subtle: #2a1519;
 
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
-    --shadow-md: 0 4px 12px rgb(0 0 0 / 0.45);
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.45);
+    --shadow-md: 0 4px 14px rgb(0 0 0 / 0.5);
 
     color-scheme: dark;
   }
 }
 
-/* Explicit choice wins in both directions. */
+/* An explicit choice wins in both directions. */
 :root[data-theme='dark'] {
-  --bg: #0f1319;
-  --surface: #161b23;
-  --surface-raised: #1c222b;
-  --border: #2a323d;
-  --border-strong: #3a4552;
+  --bg: #12141a;
+  --surface: #191d26;
+  --surface-raised: #212734;
+  --border: #2b323f;
+  --border-strong: #3d4657;
 
-  --text: #e8ecf2;
-  --text-muted: #a3aebf;
+  --text: #e9e6df;
+  --text-muted: #a8a396;
 
-  --accent: #79aaf5;
-  --accent-hover: #9dc2f8;
-  --accent-subtle: #16233a;
-  --accent-contrast: #0f1319;
+  --accent: #8fb8d6;
+  --accent-hover: #b0cde3;
+  --accent-subtle: #17222e;
+  --accent-contrast: #12141a;
+
+  --accent-2: #c9a227;
+  --accent-2-subtle: #241f12;
 
   --ok: #7ede9d;
   --ok-subtle: #12241a;
   --err: #f2a0a8;
   --err-subtle: #2a1519;
 
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
-  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.45);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.45);
+  --shadow-md: 0 4px 14px rgb(0 0 0 / 0.5);
 
   color-scheme: dark;
 }
 
 :root {
-  /* Type — 1.200 minor third, fluid between 360px and 1280px viewports */
+  /* ---- Type -------------------------------------------------------------
+     Fraunces carries the display voice; Inter does the reading and the UI.
+     Bengali gets a matching pair so a Bengali page is not a sans page with a
+     serif heading bolted on. */
+  --font-display: 'Fraunces Variable', 'Fraunces', Georgia, 'Times New Roman', serif;
   --font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-bn: 'Noto Sans Bengali Variable', 'Noto Sans Bengali', 'Nirmala UI', system-ui, sans-serif;
+  --font-bn-serif: 'Noto Serif Bengali Variable', 'Noto Serif Bengali', var(--font-bn);
   --font-mono: ui-monospace, SFMono-Regular, 'Cascadia Mono', Menlo, monospace;
 
+  /* 1.200 minor third, fluid between 360px and 1280px */
   --step--1: clamp(0.83rem, 0.80rem + 0.13vw, 0.89rem);
   --step-0:  clamp(1.00rem, 0.96rem + 0.19vw, 1.06rem);
   --step-1:  clamp(1.20rem, 1.13rem + 0.31vw, 1.33rem);
@@ -102,6 +131,7 @@
   --step-3:  clamp(1.73rem, 1.55rem + 0.75vw, 2.07rem);
   --step-4:  clamp(2.07rem, 1.81rem + 1.14vw, 2.59rem);
   --step-5:  clamp(2.49rem, 2.10rem + 1.70vw, 3.24rem);
+  --step-6:  clamp(2.99rem, 2.40rem + 2.55vw, 4.05rem);
 
   /* Spacing — 4px base */
   --space-1: 0.25rem;  --space-2: 0.5rem;   --space-3: 0.75rem;
@@ -110,10 +140,10 @@
   --space-12: 6rem;
 
   --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 14px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
 
   /* Layout */
   --wrap: 72rem;
-  --measure: 68ch;
+  --measure: 66ch;
 }

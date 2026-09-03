@@ -1,16 +1,18 @@
 ---
 title: "Ahmad Al-Imtiaz"
-description: "Observational astrophysicist studying the internal structure, chemical composition and evolution of galaxies through strong gravitational lensing."
+description: "Graduate Research Assistant at CASSA, Independent University, Bangladesh — galaxy evolution, strong gravitational lensing, and instrumentation."
 cover: "./images/profile.webp"
 coverAlt: "Ahmad Al-Imtiaz"
 ---
 
-I'm Ahmad Al-Imtiaz — a prospective Ph.D. student in astrophysics with a passion for exploring the universe through observations. I earned my B.Sc. and M.Sc. in Physics from Shahjalal University of Science and Technology (SUST), Bangladesh, and I am currently working as a Graduate Research Assistant at the Center for Astronomy, Space Science and Astrophysics at Independent University, Bangladesh. Previously, I worked as a Lecturer at Daffodil International University and as an Assistant Teacher of Science at Reaz Public School in Dhaka, Bangladesh.
+I study how galaxies grow, using gravity itself as a telescope.
 
-My research focuses on the internal structure, chemical composition, and evolution of galaxies, primarily leveraging strong gravitational lensing. I have hands-on experience processing imaging data from HST, JWST, and Gemini/GSAOI, alongside spectroscopic data from Keck/MOSFIRE and JWST/IFU. My analytical toolkit includes modeling complex lensing systems using Lenstronomy and performing Spectral Energy Distribution (SED) fitting with ALF (Absorption Line Fitter) and Dense Basis.
+I am a Graduate Research Assistant at the Center for Astronomy, Space Science and Astrophysics (CASSA) at Independent University, Bangladesh, working with Dr. Lamiya Mowla and Dr. Syed Ashraf Uddin. My work runs from high-redshift data analysis to the instrumentation that produces it: photometry and SED fitting of star clusters in lensed galaxies on one side, and an automated reduction pipeline for CASSA's first optical observatory on the other.
 
-My recent joint first-author publication in Astronomy & Astrophysics (July 2025) investigates the correlation between the local environment and the internal structure of massive elliptical galaxies. Currently, my ongoing projects include analyzing the chemical composition of the lensed quiescent galaxy AGEL0014 and studying the stellar populations of the strongly lensed Sparkler galaxy.
+My M.Sc. thesis measured resolved metallicity and stellar age gradients in AGEL0014, a strongly lensed quiescent galaxy at z ≈ 1.4, to work out how it stopped forming stars. The analysis is complete and the manuscript is in preparation. Alongside it I contribute SED fitting to the CANUCS collaboration — 182 star clusters across 43 galaxies in five lensing clusters — and I am beginning to look for similar systems in the Bullet Cluster.
 
-Beyond academics, I have attended several international workshops and schools in astronomy and astrophysics, which have strengthened my skills as both a researcher and an educator. I am passionate about science communication and outreach — particularly inspiring young students to explore the wonders of the night sky.
+I earned my B.Sc. and M.Sc. in Physics from Shahjalal University of Science and Technology, and my first paper, on the relationship between environment and the internal structure of massive elliptical galaxies, appeared in *Astronomy & Astrophysics* in 2025. I work with imaging from HST, JWST and Gemini/GSAOI, and spectroscopy from Keck/MOSFIRE and JWST.
 
-Outside of academics, I love traveling — especially to mountains and green places — and enjoy cycling as a way to both explore and stay physically active. This website is a window into my academic journey, research, teaching, travels, and personal writings. Feel free to explore!
+Outreach is not a sideline for me. Over six years — as Study Circle Secretary and then President of CAM-SUST, and more recently through workshops at SUST, Daffodil International University and CASSA — I have helped run astronomy schools and carnivals that have reached more than 2,300 students across Bangladesh. I have also taught undergraduate physics, and science to schoolchildren, which I think made me a better explainer than any amount of reading would have.
+
+Away from the desk I travel, mostly toward mountains and green places, and cycle long distances for the same reason. Some of what I see ends up here as writing, in English and in Bangla.

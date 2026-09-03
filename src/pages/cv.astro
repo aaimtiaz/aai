@@ -1,50 +1,151 @@
 ---
 import Base from '../layouts/Base.astro';
-import { site, profileLinks } from '../data/site';
+import Icon from '../components/Icon.astro';
+import {
+  site, profileLinks, PROFILE_LABELS, education, awards, telescopes, tools,
+} from '../data/site';
 import { getPublished } from '../lib/content';
 
-const research = (await getPublished('research')).sort((a, b) => (a.data.order ?? 0) - (b.data.order ?? 0));
+const research = (await getPublished('research')).sort(
+  (a, b) => (a.data.order ?? 0) - (b.data.order ?? 0),
+);
 const papers = research.filter((r) => r.data.publication);
-const labels: Record<string, string> = {
-  orcid: 'ORCID', scholar: 'Google Scholar', ads: 'NASA ADS', github: 'GitHub', arxiv: 'arXiv',
+
+const ICONS: Record<string, 'orcid' | 'scholar' | 'github' | 'external'> = {
+  orcid: 'orcid', scholar: 'scholar', github: 'github',
 };
+
+/* Experience, schools and outreach are transcribed from the CV. They live
+   here rather than in a collection because they are CV facts, not posts —
+   the teaching and outreach *entries* stay draft-gated separately. */
+const experience = [
+  {
+    role: 'Graduate Research Assistant',
+    org: 'CASSA, Independent University, Bangladesh',
+    when: 'Nov 2025 – present',
+    detail:
+      'Sparkler and CANUCS photometry and SED fitting with Dr. Lamiya Mowla; building the image reduction and photometry pipeline for CASSA’s first optical observatory with Dr. Syed Ashraf Uddin.',
+  },
+  {
+    role: 'Project Facilitator and Consultant',
+    org: 'EcoAstroBD, funded by IAU-OAD',
+    when: 'Dec 2025 – present',
+    detail:
+      'Affordable, eco-friendly astronomy kits tackling STEM inequality in Bangladesh. Consultation on leadership, coordination and direction.',
+  },
+  { role: 'Research Intern', org: 'ICTP PWF: Physics for Bangladesh', when: 'Jul – Oct 2025' },
+  { role: 'SOC and Facilitator', org: 'CAM-SUST Summer School on Astrophysics 2025', when: 'Aug – Sep 2025' },
+  {
+    role: 'Facilitator',
+    org: 'Stellar Light & Cosmic Bends: Data-Driven Astronomy Workshop',
+    when: '27–28 Jul 2025',
+    detail: 'Hands-on session on galaxy–galaxy strong lens modelling.',
+  },
+  {
+    role: 'Lecturer, Department of CSE',
+    org: 'Daffodil International University',
+    when: 'Feb – Apr 2025',
+    detail: 'PHY101, PHY102 and PHY103 (lab) — junior undergraduate physics.',
+  },
+  {
+    role: 'Assistant Teacher — Science',
+    org: 'Reaz Public School, Narayanganj',
+    when: 'Apr 2024 – Feb 2025',
+    detail: 'Member of the Corporate Social Responsibility team at Epyllion Group, Dhaka.',
+  },
+  {
+    role: 'Facilitator',
+    org: 'AstroCode Intensive, CAM-SUST',
+    when: '8–9 Mar 2024',
+    detail: 'Hands-on session on astronomical image reduction.',
+  },
+  { role: 'President, 9th Executive Committee', org: 'CAM-SUST', when: 'Mar 2021 – Jul 2022' },
+  { role: 'Study Circle Secretary, 8th Executive Committee', org: 'CAM-SUST', when: 'Aug 2019 – Mar 2021' },
+];
+
+const schools = [
+  'CASSA Workshop 1: Unclouding the Thousand Eyes of an Array Radio Telescope, 2025',
+  'JWST Data Analysis and Processing Workshop (South East Asia), 2024 — COSPAR & NARIT, Chiang Mai, Thailand (fully funded)',
+  'Astro101: Hands-on Workshop on Optical Astronomy, 2023 — NARIT, Chiang Mai, Thailand (hackathon winner)',
+  'Introduction to Computational Astrophysics, 2021 — NUEVACAMP, SPSB, MASLAB',
+  'Introduction to the HR Diagram with LCO, 2021 — Maulana Azad National Urdu University, India',
+  'HPC for Astrophysics and Astronomy, 2021 — SKA-India Consortium & IIT Kharagpur',
+  'Introduction to MATLAB, 2021 — IEEE NSU PES',
+  'Introduction to Stars, 2021 — Breakthrough Science Society, India',
+  'Machine Learning, 2021 — Andrew Ng, Coursera',
+  '13th Radio Astronomy Winter School, 2020 — IUCAA, Pune, India',
+  'Astronomical Data Analysis by TOPCAT, 2019 — CAM-SUST, Sylhet',
+];
+
+const conferences = [
+  'Best Presenter Award, International Conference on Physics 2026 — AGEL0014',
+  'Poster, ESO Santiago, Chile, 2023 — the mass–metallicity relation',
+  'Poster, International Conference of Physical Sciences, SUST, 2022 — the Neptunian Desert',
+];
 ---
 <Base
   title="Curriculum Vitae"
-  description={`Curriculum vitae of ${site.name} — observational astrophysics, galaxy evolution and strong gravitational lensing.`}
+  description={`Curriculum vitae of ${site.name} — observational astrophysics, galaxy evolution and instrumentation.`}
 >
   <div class="wrap cv">
-    <header>
+    <header class="cv__head">
       <h1>Curriculum Vitae</h1>
       <p class="lede">
         {site.affiliation.role}, {site.affiliation.org},<br />
         {site.affiliation.institution} · {site.affiliation.location}
       </p>
-      <p class="actions">
-        <a class="btn" href={site.cv} download>Download PDF</a>
+      <p class="cv__actions">
+        <a class="btn" href={site.cv} download><Icon name="external" /> Download PDF</a>
         <a class="btn btn--ghost" href={`mailto:${site.email}`}>Email</a>
       </p>
       {profileLinks.length > 0 && (
-        <ul class="tag-list">
+        <ul class="cv__links">
           {profileLinks.map((p) => (
-            <li><a href={p.url} rel="me noopener" target="_blank">{labels[p.key] ?? p.key} ↗</a></li>
+            <li>
+              <a href={p.url} rel="me noopener" target="_blank">
+                <Icon name={ICONS[p.key] ?? 'external'} size={16} />
+                {PROFILE_LABELS[p.key] ?? p.key}
+              </a>
+            </li>
           ))}
         </ul>
       )}
     </header>
 
+    <section>
+      <h2 class="section-label">Education</h2>
+      <ul class="entries">
+        {education.map((e) => (
+          <li>
+            <div class="entries__when">{e.year}</div>
+            <div>
+              <strong>{e.degree}</strong>
+              <p class="muted">{e.institution} · {e.note}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+
     {papers.length > 0 && (
       <section>
-        <h2>Publications</h2>
-        <ol class="cv-list">
+        <h2 class="section-label">Publications</h2>
+        <ol class="entries entries--num">
           {papers.map((p) => (
             <li>
-              <a href={`/research/${p.id}/`}>{p.data.title}</a>
-              <p class="meta">
-                {p.data.publication?.venue && <span>{p.data.publication.venue}</span>}
-                <span>{p.data.date.getFullYear()}</span>
-                {p.data.publication?.role && <span>{p.data.publication.role}</span>}
-              </p>
+              <div class="entries__when">{p.data.date.getFullYear()}</div>
+              <div>
+                <a href={`/research/${p.id}/`}>{p.data.title}</a>
+                <p class="muted">
+                  {p.data.publication?.venue}
+                  {p.data.publication?.role ? ` · ${p.data.publication.role}` : ''}
+                </p>
+                {p.data.publication?.doi && (
+                  <p><a class="doi" href={`https://doi.org/${p.data.publication.doi}`} rel="noopener" target="_blank">
+                    doi:{p.data.publication.doi}
+                  </a></p>
+                )}
+              </div>
             </li>
           ))}
         </ol>
@@ -52,18 +153,58 @@ const labels: Record<string, string> = {
     )}
 
     <section>
-      <h2>Current projects</h2>
-      <ol class="cv-list">
-        {research.map((r) => (
+      <h2 class="section-label">Experience</h2>
+      <ul class="entries">
+        {experience.map((e) => (
           <li>
-            <a href={`/research/${r.id}/`}>{r.data.title}</a>
-            <p class="meta">
-              {r.data.supervisor && <span>{r.data.supervisor}</span>}
-              <span>{r.data.status}</span>
-            </p>
+            <div class="entries__when">{e.when}</div>
+            <div>
+              <strong>{e.role}</strong>
+              <p class="muted">{e.org}</p>
+              {e.detail && <p class="entries__detail">{e.detail}</p>}
+            </div>
           </li>
         ))}
-      </ol>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="section-label">Awards and competitions</h2>
+      <ul class="entries">
+        {awards.map((a) => (
+          <li>
+            <div class="entries__when">{a.year}</div>
+            <div><strong>{a.title}</strong><p class="muted">{a.detail}</p></div>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="section-label">Conferences</h2>
+      <ul class="plain">{conferences.map((c) => <li>{c}</li>)}</ul>
+    </section>
+
+    <section>
+      <h2 class="section-label">Schools and workshops</h2>
+      <ul class="plain">{schools.map((s) => <li>{s}</li>)}</ul>
+    </section>
+
+    <section>
+      <h2 class="section-label">Instruments and tools</h2>
+      <div class="cols">
+        <div>
+          <h3><Icon name="telescope" /> Telescopes</h3>
+          <ul class="plain">{telescopes.map((t) => <li>{t}</li>)}</ul>
+        </div>
+        <div>
+          <h3>Software</h3>
+          <p class="tools">{tools.research.join(' · ')}</p>
+          <h3>Languages</h3>
+          <p class="tools">{tools.languages.join(' · ')}</p>
+          <p class="muted">Bengali (native) · English (IELTS 6.5)</p>
+        </div>
+      </div>
     </section>
 
     <p class="note">
@@ -71,16 +212,46 @@ const labels: Record<string, string> = {
     </p>
   </div>
 </Base>
+
 <style>
-  .cv { max-width: 52rem; }
+  .cv { max-width: 56rem; }
+  .cv__head { margin-block-end: var(--space-10); }
   .lede { color: var(--text-muted); margin-block: var(--space-3); line-height: 1.7; }
-  .actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-block: var(--space-5) var(--space-4); }
-  /* .btn lives in global.css — see the note there. */
-  section { margin-block-start: var(--space-9); }
-  section h2 { margin-block-end: var(--space-4); }
-  .cv-list { padding-inline-start: var(--space-5); display: grid; gap: var(--space-4); }
-  .cv-list a { color: var(--text); text-decoration: none; font-weight: 550; }
-  .cv-list a:hover { color: var(--accent); }
-  .cv-list .meta { margin-block-start: var(--space-1); }
-  .note { margin-block-start: var(--space-9); color: var(--text-muted); font-size: var(--step--1); }
+  .cv__actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-block: var(--space-5) var(--space-4); }
+  .cv__actions :global(.icon) { margin-inline-end: var(--space-2); }
+  .cv__links { display: flex; gap: var(--space-4); flex-wrap: wrap; list-style: none; padding: 0; }
+  .cv__links a {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    font-size: var(--step--1); text-decoration: none; color: var(--text-muted);
+  }
+  .cv__links a:hover { color: var(--accent); }
+
+  section { margin-block-end: var(--space-10); }
+
+  /* Date rail on the left, content on the right — the standard CV shape, and
+     it uses the width that a single centred column would waste. */
+  .entries { list-style: none; padding: 0; display: grid; gap: var(--space-6); }
+  .entries li { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: var(--space-4); align-items: start; }
+  .entries__when {
+    font-size: var(--step--1); color: var(--accent-2);
+    font-weight: 600; letter-spacing: 0.02em; padding-block-start: 0.15em;
+  }
+  .entries strong { font-size: var(--step-0); }
+  .entries a { font-weight: 600; }
+  .entries__detail { margin-block-start: var(--space-2); color: var(--text-muted); }
+  .muted { color: var(--text-muted); font-size: var(--step--1); margin-block-start: var(--space-1); }
+  @media (max-width: 44rem) {
+    .entries li { grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
+  }
+
+  .plain { padding-inline-start: var(--space-5); display: grid; gap: var(--space-2); color: var(--text-muted); }
+  .plain li { line-height: 1.6; }
+
+  .cols { display: grid; gap: var(--space-7); grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); }
+  .cols h3 { font-size: var(--step-0); margin-block-end: var(--space-3); display: flex; align-items: center; gap: var(--space-2); }
+  .cols h3 + h3 { margin-block-start: var(--space-5); }
+  .tools { color: var(--text-muted); font-size: var(--step--1); line-height: 1.9; }
+
+  .doi { font-family: var(--font-mono); font-size: var(--step--1); }
+  .note { margin-block-start: var(--space-10); color: var(--text-muted); font-size: var(--step--1); }
 </style>

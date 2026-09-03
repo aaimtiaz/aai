@@ -2,7 +2,10 @@
 import { Image } from 'astro:assets';
 import { getEntry, render } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import { site, profileLinks } from '../data/site';
+import Starfield from '../components/Starfield.astro';
+import Icon from '../components/Icon.astro';
+import PostCard from '../components/PostCard.astro';
+import { site, profileLinks, PROFILE_LABELS, education, stats, awards } from '../data/site';
 import { getPublished, byDateDesc, displayDate } from '../lib/content';
 
 const home = await getEntry('pages', 'home');
@@ -14,108 +17,238 @@ const research = (await getPublished('research')).sort(
 const writing = (await getPublished('writing')).sort(byDateDesc);
 const travel = (await getPublished('travel')).sort(byDateDesc);
 
-const sections = [
-  { href: '/research/', label: 'Research', count: research.length, unit: 'project', note: research.filter((r) => r.data.publication).length + ' published' },
-  { href: '/writing/', label: 'Writing', count: writing.length, unit: 'piece', note: 'English + বাংলা' },
-  { href: '/travel/', label: 'Travel', count: travel.length, unit: 'post', note: 'Mountains and green places' },
-  { href: '/outreach/', label: 'Outreach', count: (await getPublished('outreach')).length, unit: 'entry', note: 'Science communication' },
-];
+const papers = research.filter((r) => r.data.publication?.doi);
+const featured = research.slice(0, 3);
 
-const recent = [
-  ...writing.map((e) => ({ kind: 'Writing', href: `/writing/${e.id}/`, ...e.data })),
-  ...travel.map((e) => ({ kind: 'Travel', href: `/travel/${e.id}/`, ...e.data })),
-  ...research.filter((e) => e.data.publication).map((e) => ({ kind: 'Publication', href: `/research/${e.id}/`, ...e.data })),
-].sort((a, b) => b.date.valueOf() - a.date.valueOf()).slice(0, 5);
-
-const labels: Record<string, string> = {
-  orcid: 'ORCID', scholar: 'Google Scholar', ads: 'NASA ADS', github: 'GitHub', arxiv: 'arXiv',
+const ICONS: Record<string, 'orcid' | 'scholar' | 'github' | 'external'> = {
+  orcid: 'orcid', scholar: 'scholar', github: 'github',
 };
 ---
 <Base title={site.name} description={site.description}>
-  <div class="wrap">
-    <section class="hero">
+  <!-- Hero: the first element on the site that escapes the wrapper. -->
+  <section class="hero full-bleed">
+    <Starfield count={80} />
+    <div class="wrap hero__inner">
       {home?.data.cover && (
-        <Image src={home.data.cover} alt={home.data.coverAlt || site.name}
-               width={220} height={275} class="hero__photo" loading="eager" />
+        <Image
+          src={home.data.cover}
+          alt={home.data.coverAlt || site.name}
+          width={240} height={300}
+          class="hero__photo"
+          loading="eager"
+        />
       )}
       <div class="hero__text">
         <h1>{site.name}</h1>
-        <p class="hero__tagline">{site.tagline}</p>
+        <p class="hero__role">{site.role}</p>
         <p class="hero__affil">
-          {site.affiliation.role}<br />
           {site.affiliation.org}<br />
           {site.affiliation.institution} · {site.affiliation.location}
         </p>
-        <p class="hero__links">
-          <a class="btn" href={`mailto:${site.email}`}>Email</a>
+        <div class="hero__actions">
+          <a class="btn" href={`mailto:${site.email}`}><Icon name="mail" /> Email</a>
           <a class="btn btn--ghost" href={site.cv}>Curriculum Vitae</a>
-        </p>
+        </div>
         {profileLinks.length > 0 && (
-          <ul class="tag-list">
+          <ul class="hero__links">
             {profileLinks.map((p) => (
-              <li><a href={p.url} rel="me noopener" target="_blank">{labels[p.key] ?? p.key} ↗</a></li>
+              <li>
+                <a href={p.url} rel="me noopener" target="_blank">
+                  <Icon name={ICONS[p.key] ?? 'external'} size={16} />
+                  {PROFILE_LABELS[p.key] ?? p.key}
+                </a>
+              </li>
             ))}
           </ul>
         )}
       </div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <!-- Bio beside a sticky rail. The rail is what fills the width the
+         measure-capped bio used to leave empty. -->
+    <section class="split intro">
+      <div class="prose">
+        <Content />
+      </div>
+
+      <aside class="glance">
+        <h2 class="section-label">At a glance</h2>
+        <dl>
+          {education.map((e) => (
+            <>
+              <dt>{e.degree}</dt>
+              <dd>{e.institution} · {e.year} <span class="muted">({e.note})</span></dd>
+            </>
+          ))}
+          {papers.length > 0 && (
+            <>
+              <dt>Published</dt>
+              <dd>
+                {papers.map((p) => (
+                  <a href={`/research/${p.id}/`}>{p.data.publication?.venue}, {p.data.date.getFullYear()}</a>
+                ))}
+              </dd>
+            </>
+          )}
+          <dt>Recognition</dt>
+          <dd>{awards[0].title} <span class="muted">— {awards[0].year}</span></dd>
+          <dt>Currently</dt>
+          <dd>{research.filter((r) => r.data.status === 'ongoing').length} active projects at CASSA</dd>
+        </dl>
+      </aside>
     </section>
 
-    <section class="prose home-bio"><Content /></section>
+    <!-- Selected work, with the research figures. These images existed all
+         along and appeared on no homepage at all. -->
+    {featured.length > 0 && (
+      <section class="band">
+        <h2 class="section-label">Selected work</h2>
+        <div class="grid grid--3up">
+          {featured.map((r) => (
+            <PostCard href={`/research/${r.id}/`} data={r.data}
+                      kind={r.data.status === 'published' ? 'Published' : r.data.status === 'in-prep' ? 'In preparation' : 'Ongoing'} />
+          ))}
+        </div>
+        <p class="band__more"><a href="/research/">All research <Icon name="external" size={15} /></a></p>
+      </section>
+    )}
 
-    <section aria-labelledby="explore">
-      <h2 id="explore">Explore</h2>
-      <div class="grid grid--2 section-cards">
-        {sections.map((s) => (
-          <article class="card">
-            <div class="card__body">
-              <h3 class="card__title"><a href={s.href}>{s.label}</a></h3>
-              <p class="card__excerpt">
-                {s.count} {s.unit}{s.count === 1 ? '' : 's'} · {s.note}
-              </p>
-            </div>
-          </article>
+    <!-- Figures that are traceable to the CV, not invented. -->
+    <section class="band full-bleed numbers">
+      <div class="wrap numbers__inner">
+        {stats.map((s) => (
+          <div class="numbers__item">
+            <span class="numbers__value">{s.value}</span>
+            <span class="numbers__label">{s.label}</span>
+          </div>
         ))}
       </div>
     </section>
 
-    {recent.length > 0 && (
-      <section aria-labelledby="recent">
-        <h2 id="recent">Recent</h2>
-        <ul class="recent-list">
-          {recent.map((r) => (
-            <li>
-              <span class="badge">{r.kind}</span>
-              <a href={r.href} lang={r.lang}>{r.title}</a>
-              <time datetime={r.date.toISOString()}>{displayDate(r as any)}</time>
-            </li>
+    {writing.length > 0 && (
+      <section class="band">
+        <h2 class="section-label">Writing</h2>
+        <div class="grid grid--3up">
+          {writing.slice(0, 3).map((e) => (
+            <PostCard href={`/writing/${e.id}/`} data={e.data}
+                      kind={e.data.form === 'poem' ? 'Poem' : 'Prose'} />
           ))}
-        </ul>
+        </div>
+        <p class="band__more"><a href="/writing/">All writing <Icon name="external" size={15} /></a></p>
+      </section>
+    )}
+
+    {travel.length > 0 && (
+      <section class="band">
+        <h2 class="section-label">Travel</h2>
+        <div class="grid grid--3up">
+          {travel.slice(0, 3).map((e) => (
+            <PostCard href={`/travel/${e.id}/`} data={e.data} kind={e.data.location?.name} />
+          ))}
+        </div>
       </section>
     )}
   </div>
 </Base>
 
 <style>
+  /* ---- Hero ---- */
   .hero {
-    display: flex; gap: var(--space-6); align-items: start;
-    flex-wrap: wrap; margin-block-end: var(--space-8);
+    position: relative;
+    overflow: hidden;
+    background: var(--surface);
+    border-block-end: 1px solid var(--border);
+    padding-block: var(--space-10);
+    margin-block-end: var(--space-10);
   }
-  .hero__photo { border-radius: var(--radius-lg); object-fit: cover; }
-  .hero__text { flex: 1 1 20rem; display: flex; flex-direction: column; gap: var(--space-3); }
-  .hero__tagline { font-size: var(--step-1); color: var(--text-muted); }
-  .hero__affil { color: var(--text-muted); font-size: var(--step--1); line-height: 1.7; }
-  .hero__links { display: flex; gap: var(--space-3); flex-wrap: wrap; }
-  /* .btn lives in global.css — see the note there. */
-  .home-bio { margin-block-end: var(--space-10); }
-  .section-cards { margin-block: var(--space-5) var(--space-10); }
-  section + section { margin-block-start: var(--space-10); }
-  .recent-list { list-style: none; padding: 0; margin-block-start: var(--space-5); }
-  .recent-list li {
-    display: flex; align-items: baseline; gap: var(--space-3);
-    padding-block: var(--space-3); border-bottom: 1px solid var(--border);
+  .hero__inner {
+    position: relative;   /* above the starfield */
+    display: flex;
+    gap: var(--space-7);
+    align-items: center;
     flex-wrap: wrap;
   }
-  .recent-list a { color: var(--text); text-decoration: none; font-weight: 550; flex: 1 1 12rem; }
-  .recent-list a:hover { color: var(--accent); }
-  .recent-list time { color: var(--text-muted); font-size: var(--step--1); }
+  .hero__photo {
+    border-radius: var(--radius-lg);
+    object-fit: cover;
+    box-shadow: var(--shadow-md);
+  }
+  .hero__text { flex: 1 1 22rem; display: flex; flex-direction: column; gap: var(--space-3); }
+  .hero__text h1 { font-size: var(--step-6); margin: 0; }
+  .hero__role {
+    font-family: var(--font-sans);
+    font-size: var(--step-1);
+    font-weight: 550;
+    color: var(--accent-2);
+    letter-spacing: 0.01em;
+  }
+  .hero__affil { color: var(--text-muted); line-height: 1.7; }
+  .hero__actions { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-block-start: var(--space-2); }
+  .hero__actions :global(.icon) { margin-inline-end: var(--space-2); }
+  .hero__links { display: flex; gap: var(--space-4); flex-wrap: wrap; list-style: none; padding: 0; margin-block-start: var(--space-2); }
+  .hero__links a {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    font-size: var(--step--1); text-decoration: none; color: var(--text-muted);
+  }
+  .hero__links a:hover { color: var(--accent); }
+
+  /* ---- Bio + rail ---- */
+  .intro { margin-block-end: var(--space-12); }
+  .glance {
+    position: sticky; top: calc(60px + var(--space-5));
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
+  }
+  .glance dl { margin: 0; display: grid; gap: var(--space-4); }
+  .glance dt {
+    font-size: var(--step--1); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+  .glance dd { margin: var(--space-1) 0 0; font-size: var(--step--1); line-height: 1.6; }
+  .glance dd a { display: block; }
+  .glance .muted { color: var(--text-muted); }
+  @media (max-width: 60rem) { .glance { position: static; } }
+
+  /* ---- Sections ---- */
+  .band { margin-block-end: var(--space-12); }
+  .band__more { margin-block-start: var(--space-5); }
+  .band__more a {
+    display: inline-flex; align-items: center; gap: var(--space-2);
+    font-size: var(--step--1); font-weight: 550; text-decoration: none;
+  }
+  .band__more a:hover { text-decoration: underline; }
+
+  /* Explicitly three across, then two, then one. The old `grid--2` resolved
+     to three tracks at desktop and stranded a fourth card beside 784px of
+     blank — the class name described neither the code nor the output. */
+  .grid--3up { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 60rem) { .grid--3up { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 38rem) { .grid--3up { grid-template-columns: minmax(0, 1fr); } }
+
+  /* ---- Numbers ---- */
+  .numbers {
+    background: var(--surface);
+    border-block: 1px solid var(--border);
+    padding-block: var(--space-8);
+  }
+  .numbers__inner {
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  }
+  .numbers__item { display: flex; flex-direction: column; gap: var(--space-1); }
+  .numbers__value {
+    font-family: var(--font-display);
+    font-variation-settings: 'opsz' 60, 'SOFT' 20, 'WONK' 1;
+    font-size: var(--step-3);
+    color: var(--accent-2);
+    line-height: 1;
+  }
+  .numbers__label { font-size: var(--step--1); color: var(--text-muted); line-height: 1.5; }
 </style>

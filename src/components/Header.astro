@@ -1,5 +1,6 @@
 ---
 import { site, nav } from '../data/site';
+import Icon from './Icon.astro';
 const path = Astro.url.pathname;
 const isCurrent = (href: string) => path === href || (href !== '/' && path.startsWith(href));
 ---
@@ -8,7 +9,7 @@ const isCurrent = (href: string) => path === href || (href !== '/' && path.start
     <a class="brand" href="/">{site.name}</a>
 
     <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
-      <span aria-hidden="true">☰</span> Menu
+      <Icon name="menu" /> Menu
     </button>
 
     <nav id="site-nav" class="site-nav" aria-label="Primary">
@@ -18,7 +19,8 @@ const isCurrent = (href: string) => path === href || (href !== '/' && path.start
     </nav>
 
     <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme">
-      <span aria-hidden="true" data-theme-icon>☾</span>
+      <Icon name="moon" class="theme-icon theme-icon--moon" />
+      <Icon name="sun" class="theme-icon theme-icon--sun" />
     </button>
   </div>
 </header>
@@ -34,7 +36,6 @@ const isCurrent = (href: string) => path === href || (href !== '/' && path.start
   });
 
   const themeBtn = document.querySelector<HTMLButtonElement>('.theme-toggle');
-  const icon = document.querySelector<HTMLElement>('[data-theme-icon]');
   const systemDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
   const current = () => document.documentElement.dataset.theme ?? (systemDark() ? 'dark' : 'light');
 
@@ -42,7 +43,8 @@ const isCurrent = (href: string) => path === href || (href !== '/' && path.start
     const dark = current() === 'dark';
     themeBtn?.setAttribute('aria-pressed', String(dark));
     themeBtn?.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
-    if (icon) icon.textContent = dark ? '☀' : '☾';
+    // Which icon shows is driven by aria-pressed in CSS, so there is one
+    // source of truth for the state rather than a class and a glyph.
   };
   sync();
 
