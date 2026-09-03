@@ -172,16 +172,34 @@ All of this lands as `draft: true`.
 
 | | |
 |---|---|
-| **Last touched** | 2026-09-04 — round 3 planned |
+| **Last touched** | 2026-09-04 — round 3 shipped and live |
 | **Branch** | `main`, deploys on push |
 | **Round 3 decisions** | Observatory editorial; everything new stays draft; A&A only; 5 images max per post |
 
-- [ ] **A** Design system: Fraunces + Noto Serif Bengali, ivory/ink palette, starfield, icon set, small-caps labels
-- [ ] **B** Homepage: full-bleed hero, sticky "At a glance", research figures, numbers strip; drop tagline; fix "0 entrys" and the orphan card
-- [ ] **C** Content from CV + GRA report: bio, `site.ts`, 3 new research entries, 2 updated, real `/cv/`, corrected teaching dates
-- [ ] **D** Importer: cover for every photo post, cap 5, preserve credits, re-run
-- [ ] **E** Travel + outreach entries from date-clusters and CV pairing — all draft
-- [ ] **F** Admin: in-place selection, GraphQL batching, per-file cache in localStorage, lazy marked/dompurify, bounded commit concurrency, tag datalist fix
+- [x] **A** Design system: Fraunces + Noto Serif Bengali, ivory/ink palette, starfield, icon set, small-caps labels
+- [x] **B** Homepage: full-bleed hero, sticky "At a glance", research figures, numbers strip; drop tagline; fix "0 entrys" and the orphan card
+- [x] **C** Content from CV + GRA report: bio, `site.ts`, 3 new research entries, 2 updated, real `/cv/`, corrected teaching dates
+- [x] **D** Importer: cover for every photo post, cap 5, preserve credits, re-run
+- [x] **E** Travel + outreach entries from date-clusters and CV pairing — all draft
+- [x] **F** Admin: in-place selection, GraphQL batching, per-file cache in localStorage, lazy marked/dompurify, bounded commit concurrency, tag datalist fix
+
+---
+
+## Round 3 outcome — measured
+
+- Homepage dead space right of content: **44% → 12.4%** (just the centred gutter).
+- Posts with a cover image: **10 → 78** of the 83 that have a photo in the export.
+- Total content media: **23 MB**, max 5 images per post.
+- Admin bundle before first paint: **184 KB → 115 KB**; selection no longer re-renders the list.
+- Light mode: ivory `#faf8f4`, text 16.4:1 (was pure white at 17.9:1). All token pairs pass AA in both themes.
+- Trips identified by date window + phrase: **10 trips, 22 posts** routed to travel.
+- Build 50 pages, sitemap 42 URLs, zero drafts leaked, privacy grep clean.
+
+**Concurrent-edit note.** The owner was curating in /admin/ during this round and
+main moved underneath: 8 publishes, 1 unpublish, 6 deletes. Those decisions were
+reapplied on top of the re-import after verifying no body text differed. If the
+importer is ever re-run, check `git log origin/main` for admin commits first —
+a blind re-import reverts curation silently.
 
 ---
 
