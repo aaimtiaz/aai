@@ -5,7 +5,6 @@ lang: en
 location:
   name: Bangladesh
 cover: ./images/do-you-want-to-witness-beauty-and-mystery-within-t.webp
-coverAlt: ""
 gallery:
   - src: ./images/do-you-want-to-witness-beauty-and-mystery-within-t-2.webp
     alt: ""
@@ -18,7 +17,7 @@ gallery:
 excerpt: Do you want to witness beauty and mystery within the darkness? Let your “bike” make some noise in silence. And to watch the most gorgeous "night sky,"
 tags:
   - travel
-draft: true
+draft: false
 source: facebook
 ---
 
