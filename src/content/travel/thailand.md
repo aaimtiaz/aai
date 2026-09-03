@@ -12,7 +12,7 @@ gallery:
 excerpt: 2 photographs.
 tags:
   - travel
-draft: true
+draft: false
 source: facebook
 ---
 
