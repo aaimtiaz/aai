@@ -64,7 +64,8 @@ const schema = [{
   .travel__figure { margin-block: var(--space-6) var(--space-7); }
   .travel__figure img { border-radius: var(--radius-lg); width: 100%; }
   .travel__figure figcaption { color: var(--text-muted); font-size: var(--step--1); margin-block-start: var(--space-2); }
-  .travel__body :global(p) { white-space: pre-line; }
+  /* No `pre-line` here: travel writing is prose, and a forced line break stops
+     a line being justified. Paragraph breaks come from blank lines instead. */
   .gallery { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); margin-block-start: var(--space-8); }
   .gallery img { border-radius: var(--radius-md); width: 100%; }
   .travel__tags { margin-block-start: var(--space-8); }

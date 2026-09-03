@@ -217,10 +217,17 @@ import Base from '../../layouts/Base.astro';
     border: 1px solid var(--border); border-radius: var(--radius-sm);
     padding: var(--space-4); min-height: 12rem; background: var(--surface);
   }
-  /* The same rule the real post page uses, so the preview tells the truth
-     about where poem lines break. */
-  .preview :global(p) { white-space: pre-line; }
+  /* Mirrors the real post page exactly, so the preview tells the truth: poems
+     keep their typed line breaks, prose is justified and hyphenated. If these
+     two rules drift from writing/[id].astro, the preview starts lying. */
   .preview :global(p + p) { margin-block-start: var(--space-4); }
+  .preview.is-poem :global(p) { white-space: pre-line; }
+  .preview.is-prose :global(p) {
+    text-align: justify;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+  }
+  .preview[lang='bn'] :global(p) { hyphens: none; -webkit-hyphens: none; }
 
   .actions {
     display: flex; gap: var(--space-3); flex-wrap: wrap;

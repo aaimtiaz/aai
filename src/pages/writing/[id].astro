@@ -79,18 +79,22 @@ const schema = [{
   }
   .writing__intro { color: var(--text-muted); font-size: var(--step-1); margin-block-end: var(--space-4); }
 
-  /* A CommonMark soft break emits a literal newline in the HTML, so
-     `pre-line` on the paragraphs alone reproduces the old
-     `white-space: pre-line` rendering — poems break exactly where they were
-     typed. Scoped to <p> rather than the container so whitespace *between*
-     block elements is not turned into stray blank lines. */
-  .writing__body :global(p) { white-space: pre-line; }
   .writing__body :global(p + p) { margin-block-start: var(--space-4); }
 
+  /* Poems only. A CommonMark soft break emits a literal newline in the HTML,
+     so `pre-line` reproduces the old `white-space: pre-line` rendering and the
+     poem breaks exactly where it was typed. Scoped to <p> rather than the
+     container so whitespace *between* blocks is not turned into blank lines. */
+  .writing__body.is-poem :global(p) { white-space: pre-line; }
   .writing__body.is-poem {
     font-size: var(--step-1);
     line-height: 1.9;
   }
+
+  /* Prose deliberately does NOT get `pre-line`. A line ending in a forced
+     break is never stretched, so with pre-line every line would end hard and
+     justification would render identically to ragged-right — the exact thing
+     it is meant to fix. Paragraph breaks come from blank lines in the source. */
   .writing__body.is-prose { font-size: var(--step-0); line-height: 1.85; }
 
   .writing__note {

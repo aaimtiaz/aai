@@ -107,6 +107,12 @@ document.querySelectorAll<HTMLButtonElement>('[data-pane]').forEach((btn) => {
       // Rendered, then sanitised, then injected — the input is the author's
       // own Markdown, but sanitising keeps a pasted <script> inert.
       preview.innerHTML = DOMPurify.sanitize(marked.parse(body.value, { async: false }) as string);
+      // Match the real post page: poems keep their line breaks, prose is
+      // justified. Without this the preview would misrepresent both.
+      const form = $<HTMLSelectElement>('form-field').value;
+      const isPoem = collectionSel.value === 'writing' && form === 'poem';
+      preview.className = `preview ${isPoem ? 'is-poem' : 'is-prose'}`;
+      preview.lang = $<HTMLSelectElement>('lang').value;
       body.hidden = true;
       preview.hidden = false;
     } else {
