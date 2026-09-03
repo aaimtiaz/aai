@@ -149,10 +149,44 @@ import Base from '../../layouts/Base.astro';
       <!-- Post list -->
       <div id="view-list" hidden>
         <div class="list-head">
-          <label class="checkbox"><input type="checkbox" id="only-drafts" /> Imported and draft only</label>
-          <button class="btn btn--ghost" id="refresh-btn" type="button">Refresh</button>
+          <div class="list-filters">
+            <label class="inline" for="list-filter">Show</label>
+            <select id="list-filter">
+              <option value="drafts">Drafts only</option>
+              <option value="all">Everything</option>
+              <option value="published">Live only</option>
+              <option value="imported">Imported from Facebook</option>
+            </select>
+
+            <label class="inline" for="list-section">Section</label>
+            <select id="list-section">
+              <option value="all">All</option>
+              <option value="writing">Writing</option>
+              <option value="travel">Travel</option>
+              <option value="research">Research</option>
+              <option value="teaching">Teaching</option>
+              <option value="outreach">Outreach</option>
+            </select>
+          </div>
+          <div class="list-tools">
+            <button class="btn btn--ghost btn--sm" id="select-all" type="button">Select all shown</button>
+            <button class="btn btn--ghost btn--sm" id="refresh-btn" type="button">Refresh</button>
+          </div>
         </div>
-        <p id="list-status" class="muted" role="status" aria-live="polite">Loading...</p>
+
+        <p id="list-status" class="muted" role="status" aria-live="polite">Loading…</p>
+
+        <!-- Bulk actions apply as ONE commit, so clearing out a hundred
+             imported drafts is a single rebuild rather than a hundred. -->
+        <div id="bulk-bar" class="bulk-bar" hidden>
+          <span><strong id="bulk-count">0</strong> selected</span>
+          <div class="bulk-bar__actions">
+            <button class="btn btn--sm" id="bulk-publish" type="button">Publish</button>
+            <button class="btn btn--ghost btn--sm" id="bulk-unpublish" type="button">Make draft</button>
+            <button class="btn btn--danger btn--sm" id="bulk-delete" type="button">Delete</button>
+          </div>
+        </div>
+
         <ul id="post-list" class="post-list"></ul>
       </div>
     </section>
@@ -256,13 +290,44 @@ import Base from '../../layouts/Base.astro';
   .status.err { background: var(--err-subtle); color: var(--err); border: 1px solid var(--err); }
   .status.busy { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
 
-  .list-head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+  .list-head { display: flex; justify-content: space-between; align-items: end; gap: var(--space-4); flex-wrap: wrap; }
+  .list-filters { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+  .list-tools { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+  .admin :global(label.inline) { display: inline; margin: 0; font-size: var(--step--1); color: var(--text-muted); font-weight: 500; }
+  .list-filters :global(select) { width: auto; min-width: 9rem; }
+
+  .btn--sm { min-height: 38px; padding: 0 var(--space-3); font-size: var(--step--1); }
+
+  /* Sticks to the bottom so the actions stay reachable while scrolling a
+     long list of drafts on a phone. */
+  .bulk-bar {
+    position: sticky; bottom: 0; z-index: 5;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: var(--space-3); flex-wrap: wrap;
+    padding: var(--space-3) var(--space-4); margin-block: var(--space-3);
+    border: 1px solid var(--accent); border-radius: var(--radius-sm);
+    background: var(--accent-subtle); color: var(--text);
+  }
+  .bulk-bar__actions { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+
   .post-list { list-style: none; padding: 0; display: grid; gap: var(--space-3); margin-block-start: var(--space-4); }
   .post-list :global(li) {
-    display: flex; justify-content: space-between; align-items: center; gap: var(--space-3);
-    padding: var(--space-3) var(--space-4); flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: start; gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
     border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface);
   }
-  .post-list :global(.post-list__meta) { color: var(--text-muted); font-size: var(--step--1); }
-  .post-list :global(.post-list__actions) { display: flex; gap: var(--space-2); }
+  .post-list :global(.post-list__main) { min-width: 0; }
+  .post-list :global(.post-list__meta) { color: var(--text-muted); font-size: var(--step--1); margin-block-start: 2px; }
+  .post-list :global(.post-list__excerpt) {
+    color: var(--text-muted); font-size: var(--step--1); margin-block-start: var(--space-2);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .post-list :global(.post-list__actions) { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: end; }
+
+  @media (max-width: 34rem) {
+    .post-list :global(li) { grid-template-columns: auto 1fr; }
+    .post-list :global(.post-list__actions) { grid-column: 2; justify-content: start; }
+  }
 </style>
