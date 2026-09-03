@@ -12,9 +12,9 @@
 | | |
 |---|---|
 | **Last touched** | 2026-09-03 — Phases 0–2, 4, 4b (code), 5 and 6 built; 30 pages, build green, 0 type errors |
-| **Current phase** | Phase 3 — connect Cloudflare Pages (**needs the owner's account**) |
+| **Current phase** | Phase 4 done; ready for cutover. See NEXT-STEPS.md |
 | **Branch** | `redesign`, pushed and tracking `origin/redesign` |
-| **Blockers** | Three things need the owner: (1) connect Cloudflare Pages, (2) request the Facebook DYI export, (3) supply ORCID / Scholar / ADS / GitHub URLs. Nothing else is waiting. |
+| **Blockers** | Two things need the owner: (1) request the Facebook DYI export, (2) supply ORCID / Scholar / ADS / GitHub URLs. Nothing else is waiting. |
 | **Notes** | Local remote URL is stale — still `aai`, GitHub 301s it to `aaimtiaz.github.io`. Push works, so non-blocking. Fix when convenient: `git remote set-url origin https://github.com/aaimtiaz/aaimtiaz.github.io.git` (auto-mode classifier blocked this; needs a manual run). |
 
 ### Checklist
@@ -33,12 +33,16 @@
 - [x] Migrate home bio + three research entries
 - [x] **Gate PASSED:** `dist/404.html` is at the top level, not `dist/404/index.html`
 
-**Phase 3 — Cloudflare Pages** — *needs the owner's Cloudflare account*
+**Phase 3 — Hosting: staying on GitHub Pages** *(owner chose option B over Cloudflare)*
+
+Keeps `aaimtiaz.github.io`, the already-indexed URL. No migration, no cost.
 - [x] `.node-version` pinned to `24.19.0`
-- [ ] Connect the repo at dash.cloudflare.com → Workers & Pages → Create → Pages → Connect to Git
-      · repository `aaimtiaz/aaimtiaz.github.io` · production branch **`redesign`**
-      · framework preset **Astro** · build `npm run build` · output `dist`
-- [ ] Confirm the first deploy is green, then run the preview-deploy checks below
+- [x] `.github/workflows/static.yml` rewritten to build Astro and upload `dist` — the old one uploaded the repo root, which would now publish `src/` and `package.json` as a website
+- [x] `site` already `https://aaimtiaz.github.io`, so canonicals/sitemap/RSS need no change
+- [x] `.nojekyll` added — Jekyll would otherwise strip `_astro/`, which holds every stylesheet, script and image
+- [x] Old URLs kept alive as real stub files with correct `canonical` tags (`/research.html`, `/writings.html`, `/teaching.html`, `/outreach.html`, `/admin.html`) — GitHub Pages has no redirect support
+- [x] Old CV path `/assets/pdfs/Curriculum Vitae_Ahmad Al-Imtiaz.pdf` preserved — that link may be on already-submitted applications
+- [x] Removed `_redirects` / `_headers` (Cloudflare-only). **Accepted trade-off:** no custom HTTP headers on GitHub Pages, so the security-header set is gone. The admin page is still excluded from search by its `noindex` meta and `robots.txt`.
 
 **Phase 4 — Writing + travel**
 - [x] Migrated three writings via `scripts/migrate-writings.mjs` — Bengali read straight from the JSON rather than retyped; verified UTF-8, no BOM, line breaks and em-dashes intact
@@ -67,11 +71,13 @@
 - [x] Verified excluded from sitemap, `noindex`, and **no analytics loaded on the page**
 - [ ] End-to-end test with a real token (see the admin checklist in Verification) — the orphan-failure test in particular
 
-**Phase 7 — Cutover**
-- [ ] Merge `redesign` → `main`; switch the Cloudflare production branch to `main`; attach the custom domain and update `site` in `astro.config.mjs`
-- [ ] **Delete `.github/workflows/static.yml`** — it uploads the whole repo root, so it would publish `src/` and `package.json` as a website
+**Phase 7 — Cutover** — see NEXT-STEPS.md Step 4
+- [ ] Merge `redesign` → `main` and push; the workflow deploys automatically
 - [ ] Remove the superseded root files: `index.html`, `research.html`, `writings.html`, `teaching.html`, `outreach.html`, `admin.html`, `assets/` (all migrated; git history keeps them)
-- [ ] Disable GitHub Pages in repo settings; submit the sitemap to Search Console
+- [ ] **Keep** `.github/workflows/static.yml` — rewritten, not deleted; it is what publishes the site now
+- [ ] **Keep** GitHub Pages enabled; if the run fails on permissions, set Settings → Pages → Source to **GitHub Actions**
+- [ ] Verify `/writings.html` forwards and the old CV URL still resolves
+- [ ] Submit the sitemap to Search Console
 
 ---
 
