@@ -1,10 +1,15 @@
 ---
 title: "Durbin: rebuilding an astrophotography archive"
 date: 2026-02-01
-status: "published"
+status: published
 order: 6
-excerpt: "Migrating an astrophotography collection to a new platform — 85 objects, 85 pages, and about 65 object essays."
-tags: ["outreach", "web", "Python", "science communication"]
+excerpt: Migrating an astrophotography collection to a new platform — 85 objects, 85 pages, and about 65 object essays.
+tags:
+  - outreach
+  - web
+  - Python
+  - science communication
+draft: true
 ---
 
 Durbin is CASSA's astrophotography platform. Its previous website held a substantial collection of images and metadata with no straightforward way to move them.
