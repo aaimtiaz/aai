@@ -1,0 +1,10 @@
+# Old flat .html URLs from the pre-Astro site.
+# Cloudflare applies these before header rules; first match wins.
+/index.html       /             301
+/research.html    /research/    301
+/writings.html    /writing/     301
+/teaching.html    /teaching/    301
+/outreach.html    /outreach/    301
+/admin.html       /admin/       301
+/assets/pdfs/*    /cv/          301
+/assets/data/*    /writing/     301

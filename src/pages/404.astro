@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import { nav } from '../data/site';
+---
+<Base title="Page not found" noindex>
+  <div class="wrap prose">
+    <h1>Page not found</h1>
+    <p>That page doesn't exist — it may have moved when this site was rebuilt.</p>
+    <p>Try one of these instead:</p>
+    <ul>
+      <li><a href="/">Home</a></li>
+      {nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
+    </ul>
+  </div>
+</Base>

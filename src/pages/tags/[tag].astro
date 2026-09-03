@@ -1,0 +1,53 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getPublished, byDateDesc, tagSlug } from '../../lib/content';
+
+
+/** Tags cross every collection, so one tag page can list a poem, a trip and
+ *  a paper together. */
+export async function getStaticPaths() {
+  const names = ['writing', 'travel', 'research', 'teaching', 'outreach'] as const;
+  const groups = await Promise.all(
+    names.map(async (n) => (await getPublished(n)).map((e) => ({ e, section: n }))),
+  );
+  const all = groups.flat();
+
+  const byTag = new Map<string, { tag: string; items: typeof all }>();
+  for (const item of all) {
+    for (const tag of item.e.data.tags ?? []) {
+      const key = tagSlug(tag);
+      if (!byTag.has(key)) byTag.set(key, { tag, items: [] });
+      byTag.get(key)!.items.push(item);
+    }
+  }
+
+  return [...byTag.entries()].map(([key, { tag, items }]) => ({
+    params: { tag: key },
+    props: { tag, items: items.sort((a, b) => byDateDesc(a.e, b.e)) },
+  }));
+}
+
+const { tag, items } = Astro.props;
+const SECTION: Record<string, string> = {
+  writing: 'Writing', travel: 'Travel', research: 'Research',
+  teaching: 'Teaching', outreach: 'Outreach',
+};
+---
+<Base title={`Tagged “${tag}”`} description={`Everything tagged ${tag}.`}>
+  <div class="wrap">
+    <p class="back"><a href="/">← Home</a></p>
+    <h1>Tagged “{tag}”</h1>
+    <p class="meta">{items.length} item{items.length === 1 ? '' : 's'}</p>
+    <div class="grid grid--3">
+      {items.map(({ e, section }) => (
+        <PostCard href={`/${section}/${e.id}/`} data={e.data} kind={SECTION[section]} />
+      ))}
+    </div>
+  </div>
+</Base>
+<style>
+  .back { margin-block-end: var(--space-4); }
+  h1 { margin-block-end: var(--space-2); }
+  .meta { margin-block-end: var(--space-6); }
+</style>

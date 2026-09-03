@@ -1,0 +1,37 @@
+---
+import { site, profileLinks } from '../data/site';
+
+interface Props { updated?: Date }
+const { updated } = Astro.props;
+
+const labels: Record<string, string> = {
+  orcid: 'ORCID', scholar: 'Google Scholar', ads: 'NASA ADS',
+  github: 'GitHub', arxiv: 'arXiv',
+};
+---
+<footer class="site-footer">
+  <div class="wrap site-footer__inner">
+    <div class="stack">
+      <p>&copy; {new Date().getFullYear()} {site.name}</p>
+      <p><a href={`mailto:${site.email}`}>{site.email}</a></p>
+    </div>
+
+    {profileLinks.length > 0 && (
+      <nav aria-label="Scholarly profiles">
+        <ul class="tag-list">
+          {profileLinks.map((p) => (
+            <li><a href={p.url} rel="me noopener" target="_blank">{labels[p.key] ?? p.key}</a></li>
+          ))}
+        </ul>
+      </nav>
+    )}
+
+    {/* Real content date, computed at build. The old site used
+        document.lastModified, which reports the fetch time, not the edit. */}
+    {updated && (
+      <p>Last updated <time datetime={updated.toISOString()}>
+        {updated.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })}
+      </time></p>
+    )}
+  </div>
+</footer>

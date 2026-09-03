@@ -1,0 +1,71 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getPublished } from '../../lib/content';
+
+const all = (await getPublished('research')).sort(
+  (a, b) => (a.data.order ?? 0) - (b.data.order ?? 0),
+);
+const papers = all.filter((e) => e.data.publication);
+
+const STATUS: Record<string, string> = {
+  published: 'Published', 'in-prep': 'In preparation', ongoing: 'Ongoing',
+};
+---
+<Base
+  title="Research"
+  description="Publications and current projects on galaxy evolution, strong gravitational lensing, and resolved stellar populations."
+>
+  <div class="wrap">
+    <h1>Research</h1>
+    <p class="lede">
+      I study the internal structure, chemical composition and evolution of galaxies,
+      using strong gravitational lensing as a natural telescope.
+    </p>
+
+    {papers.length > 0 && (
+      <section aria-labelledby="pubs">
+        <h2 id="pubs">Publications</h2>
+        <ul class="pub-list">
+          {papers.map((p) => (
+            <li>
+              <a href={`/research/${p.id}/`}>{p.data.title}</a>
+              <p class="meta">
+                {p.data.publication?.venue && <span>{p.data.publication.venue}</span>}
+                <time datetime={p.data.date.toISOString()}>{p.data.date.getFullYear()}</time>
+                {p.data.publication?.role && <span>{p.data.publication.role}</span>}
+              </p>
+              {p.data.publication?.doi && (
+                <p class="meta">
+                  <a href={`https://doi.org/${p.data.publication.doi}`} rel="noopener" target="_blank">
+                    doi:{p.data.publication.doi} ↗
+                  </a>
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <section aria-labelledby="projects">
+      <h2 id="projects">Projects</h2>
+      <div class="grid grid--2">
+        {all.map((e) => (
+          <PostCard href={`/research/${e.id}/`} data={e.data} kind={STATUS[e.data.status] ?? e.data.status} />
+        ))}
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .lede { font-size: var(--step-1); color: var(--text-muted); max-width: var(--measure); margin-block: var(--space-4) var(--space-8); }
+  section + section { margin-block-start: var(--space-10); }
+  h2 { margin-block-end: var(--space-5); }
+  .pub-list { list-style: none; padding: 0; display: grid; gap: var(--space-5); }
+  .pub-list li { padding-inline-start: var(--space-4); border-inline-start: 3px solid var(--accent); }
+  .pub-list > li > a { font-weight: 600; color: var(--text); text-decoration: none; font-size: var(--step-1); }
+  .pub-list > li > a:hover { color: var(--accent); }
+  .pub-list .meta { margin-block-start: var(--space-2); }
+</style>

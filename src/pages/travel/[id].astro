@@ -1,0 +1,71 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getPublished, displayDate, tagSlug } from '../../lib/content';
+import { site } from '../../data/site';
+
+export async function getStaticPaths() {
+  const all = await getPublished('travel');
+  return all.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+
+const schema = [{
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: d.title,
+  datePublished: d.date.toISOString(),
+  inLanguage: d.lang,
+  author: { '@type': 'Person', name: site.name },
+  ...(d.excerpt ? { description: d.excerpt } : {}),
+}];
+---
+<Base title={d.title} description={d.excerpt} type="article" publishedTime={d.date} lang={d.lang} schema={schema}>
+  <article class="wrap travel">
+    <p class="back"><a href="/travel/">← Travel</a></p>
+    <header>
+      <h1>{d.title}</h1>
+      <p class="meta">
+        {d.location?.name && <span>{d.location.name}{d.location.country ? `, ${d.location.country}` : ''}</span>}
+        <time datetime={d.date.toISOString()}>{displayDate(d)}</time>
+      </p>
+    </header>
+
+    {d.cover && (
+      <figure class="travel__figure">
+        <Image src={d.cover} alt={d.coverAlt || ''} width={1100} height={700} />
+        {d.coverCaption && <figcaption>{d.coverCaption}</figcaption>}
+      </figure>
+    )}
+
+    <div class="prose travel__body"><Content /></div>
+
+    {d.gallery.length > 0 && (
+      <section class="gallery" aria-label="Photographs">
+        {d.gallery.map((g) => <Image src={g.src} alt={g.alt} width={700} height={500} loading="lazy" />)}
+      </section>
+    )}
+
+    {d.tags.length > 0 && (
+      <ul class="tag-list travel__tags">
+        {d.tags.map((t) => <li><a href={`/tags/${tagSlug(t)}/`}>{t}</a></li>)}
+      </ul>
+    )}
+  </article>
+</Base>
+<style>
+  .travel { max-width: 50rem; }
+  .back { margin-block-end: var(--space-5); }
+  header .meta { margin-block-start: var(--space-3); }
+  .travel__figure { margin-block: var(--space-6) var(--space-7); }
+  .travel__figure img { border-radius: var(--radius-lg); width: 100%; }
+  .travel__figure figcaption { color: var(--text-muted); font-size: var(--step--1); margin-block-start: var(--space-2); }
+  .travel__body :global(p) { white-space: pre-line; }
+  .gallery { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); margin-block-start: var(--space-8); }
+  .gallery img { border-radius: var(--radius-md); width: 100%; }
+  .travel__tags { margin-block-start: var(--space-8); }
+</style>

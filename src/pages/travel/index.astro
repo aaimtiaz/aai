@@ -1,0 +1,20 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getPublished, byDateDesc } from '../../lib/content';
+const all = (await getPublished('travel')).sort(byDateDesc);
+---
+<Base title="Travel" description="Travel writing and photographs — mountains, green places, and long rides.">
+  <div class="wrap">
+    <h1>Travel</h1>
+    <p class="lede">Mountains, green places, and the roads between them.</p>
+    {all.length === 0 ? (
+      <p class="empty-state">No travel posts yet — the first ones are on their way.</p>
+    ) : (
+      <div class="grid grid--2">
+        {all.map((e) => <PostCard href={`/travel/${e.id}/`} data={e.data} kind={e.data.location?.name} />)}
+      </div>
+    )}
+  </div>
+</Base>
+<style>.lede { font-size: var(--step-1); color: var(--text-muted); margin-block: var(--space-4) var(--space-7); }</style>

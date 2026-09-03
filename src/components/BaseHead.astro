@@ -1,0 +1,83 @@
+---
+import { site, profileLinks } from '../data/site';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Absolute or root-relative OG image path. */
+  image?: string;
+  type?: 'website' | 'article';
+  publishedTime?: Date;
+  noindex?: boolean;
+  /** Extra JSON-LD objects to emit alongside the sitewide Person. */
+  schema?: Record<string, unknown>[];
+}
+
+const {
+  title,
+  description = site.description,
+  image = '/og-default.png',
+  type = 'website',
+  publishedTime,
+  noindex = false,
+  schema = [],
+} = Astro.props;
+
+// Astro.site is set in astro.config.mjs, so canonical/OG URLs are always absolute.
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL(image, Astro.site).href;
+const fullTitle = title === site.name ? title : `${title} | ${site.name}`;
+
+const person = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: site.name,
+  email: `mailto:${site.email}`,
+  url: Astro.site?.href,
+  jobTitle: site.affiliation.role,
+  affiliation: {
+    '@type': 'Organization',
+    name: `${site.affiliation.org}, ${site.affiliation.institution}`,
+  },
+  ...(profileLinks.length ? { sameAs: profileLinks.map((p) => p.url) } : {}),
+};
+---
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+
+<link rel="icon" type="image/png" href="/favicon.png" />
+<link rel="apple-touch-icon" href="/favicon.png" />
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0f1319" media="(prefers-color-scheme: dark)" />
+
+<meta property="og:type" content={type} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:site_name" content={site.name} />
+{publishedTime && <meta property="article:published_time" content={publishedTime.toISOString()} />}
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+<link rel="alternate" type="application/rss+xml" title={`${site.name} — all posts`} href="/rss.xml" />
+
+<script is:inline set:html={JSON.stringify(person)} type="application/ld+json" />
+{schema.map((s) => <script is:inline set:html={JSON.stringify(s)} type="application/ld+json" />)}
+
+{/* Set the theme before first paint so there is no flash of the wrong palette. */}
+<script is:inline>
+  (() => {
+    try {
+      const t = localStorage.getItem('theme');
+      if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    } catch {}
+  })();
+</script>

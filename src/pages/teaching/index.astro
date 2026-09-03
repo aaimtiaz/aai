@@ -1,0 +1,36 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPublished } from '../../lib/content';
+import { render } from 'astro:content';
+const all = (await getPublished('teaching')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const rendered = await Promise.all(all.map(async (e) => ({ e, ...(await render(e)) })));
+---
+<Base title="Teaching" description="Teaching experience, courses and materials.">
+  <div class="wrap">
+    <h1>Teaching</h1>
+    {all.length === 0 ? (
+      <p class="empty-state">Teaching experience and materials are being written up.</p>
+    ) : (
+      <ol class="timeline">
+        {rendered.map(({ e, Content }) => (
+          <li>
+            <h2>{e.data.title}</h2>
+            <p class="meta">
+              {e.data.role && <span>{e.data.role}</span>}
+              {e.data.institution && <span>{e.data.institution}</span>}
+              {e.data.term && <span>{e.data.term}</span>}
+            </p>
+            <div class="prose"><Content /></div>
+          </li>
+        ))}
+      </ol>
+    )}
+  </div>
+</Base>
+<style>
+  h1 { margin-block-end: var(--space-6); }
+  .timeline { list-style: none; padding: 0; display: grid; gap: var(--space-7); }
+  .timeline li { padding-inline-start: var(--space-5); border-inline-start: 3px solid var(--border); }
+  .timeline h2 { font-size: var(--step-1); }
+  .timeline .meta { margin-block: var(--space-2) var(--space-3); }
+</style>

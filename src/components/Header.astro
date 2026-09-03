@@ -1,0 +1,55 @@
+---
+import { site, nav } from '../data/site';
+const path = Astro.url.pathname;
+const isCurrent = (href: string) => path === href || (href !== '/' && path.startsWith(href));
+---
+<header class="site-header">
+  <div class="wrap site-header__inner">
+    <a class="brand" href="/">{site.name}</a>
+
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span aria-hidden="true">☰</span> Menu
+    </button>
+
+    <nav id="site-nav" class="site-nav" aria-label="Primary">
+      {nav.map((item) => (
+        <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a>
+      ))}
+    </nav>
+
+    <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme">
+      <span aria-hidden="true" data-theme-icon>☾</span>
+    </button>
+  </div>
+</header>
+
+<script>
+  // Disclosure nav: a plain expanding panel, not a modal, so no focus trap needed.
+  const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
+  const menu = document.getElementById('site-nav');
+  toggle?.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!open));
+    menu?.setAttribute('data-open', String(!open));
+  });
+
+  const themeBtn = document.querySelector<HTMLButtonElement>('.theme-toggle');
+  const icon = document.querySelector<HTMLElement>('[data-theme-icon]');
+  const systemDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const current = () => document.documentElement.dataset.theme ?? (systemDark() ? 'dark' : 'light');
+
+  const sync = () => {
+    const dark = current() === 'dark';
+    themeBtn?.setAttribute('aria-pressed', String(dark));
+    themeBtn?.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
+    if (icon) icon.textContent = dark ? '☀' : '☾';
+  };
+  sync();
+
+  themeBtn?.addEventListener('click', () => {
+    const next = current() === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem('theme', next); } catch {}
+    sync();
+  });
+</script>

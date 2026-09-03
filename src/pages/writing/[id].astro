@@ -1,0 +1,104 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getPublished, displayDate, tagSlug } from '../../lib/content';
+import { site } from '../../data/site';
+
+export async function getStaticPaths() {
+  const all = await getPublished('writing');
+  return all.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+
+const schema = [{
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: d.title,
+  datePublished: d.date.toISOString(),
+  inLanguage: d.lang,
+  author: { '@type': 'Person', name: site.name },
+  ...(d.excerpt ? { description: d.excerpt } : {}),
+}];
+---
+<!-- The whole document is marked bn for a Bengali piece, so screen readers
+     switch voice instead of reading Bengali with English phonemes. -->
+<Base
+  title={d.title}
+  description={d.excerpt}
+  type="article"
+  publishedTime={d.date}
+  lang={d.lang}
+  schema={schema}
+>
+  <article class="wrap writing">
+    <p class="back"><a href="/writing/">← Writing</a></p>
+
+    <header class="writing__head">
+      <h1>{d.title}</h1>
+      <p class="meta">
+        <span class="badge">{d.form === 'poem' ? 'Poem' : 'Prose'}</span>
+        <time datetime={d.date.toISOString()}>{displayDate(d)}</time>
+      </p>
+    </header>
+
+    {d.cover && (
+      <figure class="writing__figure">
+        <Image src={d.cover} alt={d.coverAlt || ''} width={900} height={600} />
+        {d.coverCaption && <figcaption>{d.coverCaption}</figcaption>}
+      </figure>
+    )}
+
+    {d.intro && <p class="writing__intro">{d.intro}</p>}
+
+    <div class:list={['writing__body', `is-${d.form}`]}><Content /></div>
+
+    {d.note && <p class="writing__note">{d.note}</p>}
+
+    {d.tags.length > 0 && (
+      <ul class="tag-list writing__tags">
+        {d.tags.map((t) => <li><a href={`/tags/${tagSlug(t)}/`}>{t}</a></li>)}
+      </ul>
+    )}
+  </article>
+</Base>
+
+<style>
+  .writing { max-width: 46rem; }
+  .back { margin-block-end: var(--space-5); }
+  .writing__head { margin-block-end: var(--space-6); }
+  .writing__head .meta { margin-block-start: var(--space-3); align-items: center; }
+  .writing__figure { margin-block-end: var(--space-7); }
+  .writing__figure img { border-radius: var(--radius-lg); width: 100%; }
+  .writing__figure figcaption {
+    color: var(--text-muted); font-size: var(--step--1);
+    margin-block-start: var(--space-2); text-align: center; font-style: italic;
+  }
+  .writing__intro { color: var(--text-muted); font-size: var(--step-1); margin-block-end: var(--space-4); }
+
+  /* A CommonMark soft break emits a literal newline in the HTML, so
+     `pre-line` on the paragraphs alone reproduces the old
+     `white-space: pre-line` rendering — poems break exactly where they were
+     typed. Scoped to <p> rather than the container so whitespace *between*
+     block elements is not turned into stray blank lines. */
+  .writing__body :global(p) { white-space: pre-line; }
+  .writing__body :global(p + p) { margin-block-start: var(--space-4); }
+
+  .writing__body.is-poem {
+    font-size: var(--step-1);
+    line-height: 1.9;
+  }
+  .writing__body.is-prose { font-size: var(--step-0); line-height: 1.85; }
+
+  .writing__note {
+    margin-block-start: var(--space-7);
+    padding-block-start: var(--space-4);
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    white-space: pre-line;
+  }
+  .writing__tags { margin-block-start: var(--space-8); }
+</style>

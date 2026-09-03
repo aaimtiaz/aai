@@ -1,0 +1,19 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# environment / secrets
+.env
+.env.production
+
+# private data exports — must never be committed
+facebook-export/
+*facebook*.zip
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.log

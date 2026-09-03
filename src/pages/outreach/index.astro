@@ -1,0 +1,40 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPublished } from '../../lib/content';
+import { render } from 'astro:content';
+const all = (await getPublished('outreach')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const rendered = await Promise.all(all.map(async (e) => ({ e, ...(await render(e)) })));
+---
+<Base title="Outreach" description="Science communication, public engagement, talks and workshops.">
+  <div class="wrap">
+    <h1>Outreach</h1>
+    <p class="lede">Bringing the night sky to people who haven't looked up yet.</p>
+    {all.length === 0 ? (
+      <p class="empty-state">Outreach and science-communication work is being written up.</p>
+    ) : (
+      <ol class="timeline">
+        {rendered.map(({ e, Content }) => (
+          <li>
+            <h2>{e.data.title}</h2>
+            <p class="meta">
+              {e.data.role && <span>{e.data.role}</span>}
+              {e.data.org && <span>{e.data.org}</span>}
+              <time datetime={(e.data.eventDate ?? e.data.date).toISOString()}>
+                {(e.data.eventDate ?? e.data.date).getFullYear()}
+              </time>
+            </p>
+            <div class="prose"><Content /></div>
+          </li>
+        ))}
+      </ol>
+    )}
+  </div>
+</Base>
+<style>
+  h1 { margin-block-end: var(--space-3); }
+  .lede { font-size: var(--step-1); color: var(--text-muted); margin-block-end: var(--space-7); }
+  .timeline { list-style: none; padding: 0; display: grid; gap: var(--space-7); }
+  .timeline li { padding-inline-start: var(--space-5); border-inline-start: 3px solid var(--border); }
+  .timeline h2 { font-size: var(--step-1); }
+  .timeline .meta { margin-block: var(--space-2) var(--space-3); }
+</style>

@@ -1,0 +1,34 @@
+---
+import { Image } from 'astro:assets';
+import { displayDate } from '../lib/content';
+
+interface Props {
+  href: string;
+  data: {
+    title: string; date: Date; dateNote?: string; lang?: string;
+    excerpt?: string; cover?: any; coverAlt?: string; tags?: string[];
+    form?: string; status?: string; location?: { name: string };
+  };
+  /** Small label in the corner, e.g. "Poem" or "Published". */
+  kind?: string;
+}
+const { href, data, kind } = Astro.props;
+---
+<article class="card">
+  {data.cover && (
+    <div class="card__media">
+      {/* alt="" — the title is right there; repeating it makes screen
+          readers announce the same string twice. */}
+      <Image src={data.cover} alt={data.coverAlt || ''} width={480} height={320} loading="lazy" />
+    </div>
+  )}
+  <div class="card__body">
+    {kind && <span class="badge">{kind}</span>}
+    <h3 class="card__title"><a href={href} lang={data.lang}>{data.title}</a></h3>
+    {data.excerpt && <p class="card__excerpt" lang={data.lang}>{data.excerpt}</p>}
+    <div class="meta">
+      <time datetime={data.date.toISOString()}>{displayDate(data)}</time>
+      {data.location?.name && <span>{data.location.name}</span>}
+    </div>
+  </div>
+</article>

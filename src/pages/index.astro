@@ -1,0 +1,129 @@
+---
+import { Image } from 'astro:assets';
+import { getEntry, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { site, profileLinks } from '../data/site';
+import { getPublished, byDateDesc, displayDate } from '../lib/content';
+
+const home = await getEntry('pages', 'home');
+const { Content } = await render(home!);
+
+const research = (await getPublished('research')).sort(
+  (a, b) => (a.data.order ?? 0) - (b.data.order ?? 0),
+);
+const writing = (await getPublished('writing')).sort(byDateDesc);
+const travel = (await getPublished('travel')).sort(byDateDesc);
+
+const sections = [
+  { href: '/research/', label: 'Research', count: research.length, unit: 'project', note: research.filter((r) => r.data.publication).length + ' published' },
+  { href: '/writing/', label: 'Writing', count: writing.length, unit: 'piece', note: 'English + বাংলা' },
+  { href: '/travel/', label: 'Travel', count: travel.length, unit: 'post', note: 'Mountains and green places' },
+  { href: '/outreach/', label: 'Outreach', count: (await getPublished('outreach')).length, unit: 'entry', note: 'Science communication' },
+];
+
+const recent = [
+  ...writing.map((e) => ({ kind: 'Writing', href: `/writing/${e.id}/`, ...e.data })),
+  ...travel.map((e) => ({ kind: 'Travel', href: `/travel/${e.id}/`, ...e.data })),
+  ...research.filter((e) => e.data.publication).map((e) => ({ kind: 'Publication', href: `/research/${e.id}/`, ...e.data })),
+].sort((a, b) => b.date.valueOf() - a.date.valueOf()).slice(0, 5);
+
+const labels: Record<string, string> = {
+  orcid: 'ORCID', scholar: 'Google Scholar', ads: 'NASA ADS', github: 'GitHub', arxiv: 'arXiv',
+};
+---
+<Base title={site.name} description={site.description}>
+  <div class="wrap">
+    <section class="hero">
+      {home?.data.cover && (
+        <Image src={home.data.cover} alt={home.data.coverAlt || site.name}
+               width={220} height={275} class="hero__photo" loading="eager" />
+      )}
+      <div class="hero__text">
+        <h1>{site.name}</h1>
+        <p class="hero__tagline">{site.tagline}</p>
+        <p class="hero__affil">
+          {site.affiliation.role}<br />
+          {site.affiliation.org}<br />
+          {site.affiliation.institution} · {site.affiliation.location}
+        </p>
+        <p class="hero__links">
+          <a class="btn" href={`mailto:${site.email}`}>Email</a>
+          <a class="btn btn--ghost" href={site.cv}>Curriculum Vitae</a>
+        </p>
+        {profileLinks.length > 0 && (
+          <ul class="tag-list">
+            {profileLinks.map((p) => (
+              <li><a href={p.url} rel="me noopener" target="_blank">{labels[p.key] ?? p.key} ↗</a></li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+
+    <section class="prose home-bio"><Content /></section>
+
+    <section aria-labelledby="explore">
+      <h2 id="explore">Explore</h2>
+      <div class="grid grid--2 section-cards">
+        {sections.map((s) => (
+          <article class="card">
+            <div class="card__body">
+              <h3 class="card__title"><a href={s.href}>{s.label}</a></h3>
+              <p class="card__excerpt">
+                {s.count} {s.unit}{s.count === 1 ? '' : 's'} · {s.note}
+              </p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    {recent.length > 0 && (
+      <section aria-labelledby="recent">
+        <h2 id="recent">Recent</h2>
+        <ul class="recent-list">
+          {recent.map((r) => (
+            <li>
+              <span class="badge">{r.kind}</span>
+              <a href={r.href} lang={r.lang}>{r.title}</a>
+              <time datetime={r.date.toISOString()}>{displayDate(r as any)}</time>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </div>
+</Base>
+
+<style>
+  .hero {
+    display: flex; gap: var(--space-6); align-items: start;
+    flex-wrap: wrap; margin-block-end: var(--space-8);
+  }
+  .hero__photo { border-radius: var(--radius-lg); object-fit: cover; }
+  .hero__text { flex: 1 1 20rem; display: flex; flex-direction: column; gap: var(--space-3); }
+  .hero__tagline { font-size: var(--step-1); color: var(--text-muted); }
+  .hero__affil { color: var(--text-muted); font-size: var(--step--1); line-height: 1.7; }
+  .hero__links { display: flex; gap: var(--space-3); flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; min-height: 44px;
+    padding: 0 var(--space-5); border-radius: var(--radius-sm);
+    background: var(--accent); color: var(--accent-contrast);
+    text-decoration: none; font-weight: 550;
+  }
+  .btn:hover { background: var(--accent-hover); color: var(--accent-contrast); }
+  .btn--ghost { background: none; color: var(--accent); border: 1px solid var(--border-strong); }
+  .btn--ghost:hover { background: var(--surface); color: var(--accent); }
+  .home-bio { margin-block-end: var(--space-10); }
+  .section-cards { margin-block: var(--space-5) var(--space-10); }
+  section + section { margin-block-start: var(--space-10); }
+  .recent-list { list-style: none; padding: 0; margin-block-start: var(--space-5); }
+  .recent-list li {
+    display: flex; align-items: baseline; gap: var(--space-3);
+    padding-block: var(--space-3); border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .recent-list a { color: var(--text); text-decoration: none; font-weight: 550; flex: 1 1 12rem; }
+  .recent-list a:hover { color: var(--accent); }
+  .recent-list time { color: var(--text-muted); font-size: var(--step--1); }
+</style>

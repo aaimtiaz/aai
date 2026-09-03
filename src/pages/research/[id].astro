@@ -1,0 +1,79 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { getPublished, tagSlug } from '../../lib/content';
+import { site } from '../../data/site';
+
+export async function getStaticPaths() {
+  const all = await getPublished('research');
+  return all.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const pub = d.publication;
+
+const schema = pub
+  ? [{
+      '@context': 'https://schema.org',
+      '@type': 'ScholarlyArticle',
+      headline: d.title,
+      datePublished: d.date.toISOString(),
+      ...(pub.doi ? { sameAs: `https://doi.org/${pub.doi}` } : {}),
+      ...(pub.venue ? { publication: pub.venue } : {}),
+      author: { '@type': 'Person', name: site.name },
+    }]
+  : [];
+---
+<Base
+  title={d.title}
+  description={d.excerpt}
+  type="article"
+  publishedTime={d.date}
+  schema={schema}
+>
+  <article class="wrap">
+    <header class="entry-head">
+      <p><a href="/research/">← Research</a></p>
+      <h1>{d.title}</h1>
+      <p class="meta">
+        {d.supervisor && <span>{d.supervisor}</span>}
+        {pub?.venue && <span>{pub.venue}</span>}
+        <time datetime={d.date.toISOString()}>{d.date.getFullYear()}</time>
+      </p>
+      {pub?.doi && (
+        <p><a class="doi" href={`https://doi.org/${pub.doi}`} rel="noopener" target="_blank">
+          doi:{pub.doi} ↗
+        </a></p>
+      )}
+    </header>
+
+    {d.cover && (
+      <figure class="entry-figure">
+        <Image src={d.cover} alt={d.coverAlt || ''} width={900} height={570} />
+        {d.coverCaption && <figcaption>{d.coverCaption}</figcaption>}
+      </figure>
+    )}
+
+    <div class="prose"><Content /></div>
+
+    {d.tags.length > 0 && (
+      <ul class="tag-list entry-tags">
+        {d.tags.map((t) => <li><a href={`/tags/${tagSlug(t)}/`}>{t}</a></li>)}
+      </ul>
+    )}
+  </article>
+</Base>
+
+<style>
+  .entry-head { max-width: var(--measure); margin-block-end: var(--space-6); }
+  .entry-head h1 { margin-block: var(--space-3); }
+  .entry-head .meta { margin-block-start: var(--space-3); }
+  .entry-figure { margin-block-end: var(--space-7); }
+  .entry-figure img { border-radius: var(--radius-lg); width: 100%; }
+  .entry-figure figcaption { color: var(--text-muted); font-size: var(--step--1); margin-block-start: var(--space-2); }
+  .entry-tags { margin-block-start: var(--space-8); }
+  .doi { font-family: var(--font-mono); font-size: var(--step--1); }
+</style>

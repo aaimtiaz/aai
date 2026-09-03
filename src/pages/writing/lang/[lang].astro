@@ -1,0 +1,50 @@
+---
+import Base from '../../../layouts/Base.astro';
+import PostCard from '../../../components/PostCard.astro';
+import { getPublished, byDateDesc } from '../../../lib/content';
+
+/** Language filters are real crawlable routes, not client-side JS.
+ *  They live under /writing/lang/ so they can never collide with a post
+ *  slug at /writing/<id>/. */
+export async function getStaticPaths() {
+  const all = await getPublished('writing');
+  return ['en', 'bn'].map((lang) => ({
+    params: { lang },
+    props: { entries: all.filter((e) => e.data.lang === lang).sort(byDateDesc), lang },
+  }));
+}
+
+const { entries, lang } = Astro.props;
+const LABEL: Record<string, string> = { en: 'English', bn: 'বাংলা' };
+const KIND: Record<string, string> = { poem: 'Poem', prose: 'Prose' };
+---
+<Base title={`Writing in ${LABEL[lang]}`} description={`Writing in ${LABEL[lang]} by Ahmad Al-Imtiaz.`}>
+  <div class="wrap">
+    <h1>Writing <span lang={lang}>· {LABEL[lang]}</span></h1>
+    <nav class="filters" aria-label="Filter writing">
+      <a href="/writing/">All</a>
+      <a href="/writing/lang/en/" aria-current={lang === 'en' ? 'page' : undefined}>English</a>
+      <a href="/writing/lang/bn/" aria-current={lang === 'bn' ? 'page' : undefined}>বাংলা</a>
+    </nav>
+    {entries.length === 0 ? (
+      <p class="empty-state">Nothing here yet.</p>
+    ) : (
+      <div class="grid grid--3">
+        {entries.map((e) => (
+          <PostCard href={`/writing/${e.id}/`} data={e.data} kind={KIND[e.data.form]} />
+        ))}
+      </div>
+    )}
+  </div>
+</Base>
+
+<style>
+  .filters { display: flex; gap: var(--space-2); margin-block: var(--space-5) var(--space-6); flex-wrap: wrap; }
+  .filters a {
+    min-height: 44px; display: inline-flex; align-items: center;
+    padding: 0 var(--space-4); border: 1px solid var(--border);
+    border-radius: 999px; text-decoration: none; color: var(--text-muted);
+  }
+  .filters a:hover { border-color: var(--accent); color: var(--accent); }
+  .filters a[aria-current='page'] { background: var(--accent-subtle); color: var(--accent); border-color: var(--accent); }
+</style>
