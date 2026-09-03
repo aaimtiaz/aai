@@ -22,6 +22,8 @@ let editingPath: string | null = null;
 let existingCover: string | null = null;
 let pendingImage: Awaited<ReturnType<typeof resizeImage>> | null = null;
 let inventory: { path: string; sha: string }[] = [];
+/** Branch head SHA: the cache generation for everything derived from it. */
+let headSha = '';
 
 /* ------------------------------------------------------------------ status */
 
@@ -349,7 +351,7 @@ async function save(draft: boolean) {
         : `Published. The site rebuilds in about a minute, then it is live at /${f.collection}/${slug}/\n${url}`,
       'ok',
     );
-    inventory = [];
+    inventory = []; headSha = '';
   } catch (e) {
     const msg = (e as Error).message;
     setStatus(
@@ -379,7 +381,7 @@ $('delete-btn').addEventListener('click', async () => {
     await commitFiles(files, `Delete: ${$<HTMLInputElement>('title').value}`,
       (s) => setStatus(statusEl, s, 'busy'));
     setStatus(statusEl, 'Deleted.', 'ok');
-    inventory = [];
+    inventory = []; headSha = '';
     resetForm();
   } catch (e) {
     setStatus(statusEl, (e as Error).message, 'err');
@@ -542,11 +544,16 @@ async function loadList(force = false) {
   listStatus.textContent = 'Loading…';
   try {
     if (force || !inventory.length) {
-      inventory = await listContent();
+      const listing = await listContent();
+      inventory = listing.files;
+      headSha = listing.head;
       if (force) { try { sessionStorage.removeItem(CACHE_KEY); } catch {} }
     }
-    const treeKey = inventory.map((i) => i.sha).join('').slice(0, 64) + inventory.length;
-    rows = await fetchRows(treeKey, (done, total) => {
+    // Keyed on the commit SHA. An earlier version hashed only the first 64
+    // characters of the joined blob SHAs plus the file count, so a change to
+    // any file past the first two — with the count unchanged, as a rename is —
+    // produced an identical key and served stale rows.
+    rows = await fetchRows(headSha, (done, total) => {
       listStatus.textContent = `Loading ${done} of ${total}…`;
     });
 
@@ -582,7 +589,7 @@ async function setDraft(targets: Row[], draft: boolean) {
     targets.forEach((t) => { t.draft = draft; });
     selected.clear();
     try { sessionStorage.removeItem(CACHE_KEY); } catch {}
-    inventory = [];
+    inventory = []; headSha = '';
     renderList();
     setStatus(statusEl, `${verb}ed ${targets.length}. The site rebuilds in about a minute.`, 'ok');
   } catch (e) {
@@ -615,7 +622,7 @@ async function removeRows(targets: Row[]) {
     rows = rows.filter((r) => !gone.has(r.path));
     selected.clear();
     try { sessionStorage.removeItem(CACHE_KEY); } catch {}
-    inventory = [];
+    inventory = []; headSha = '';
     if (editingPath && gone.has(editingPath)) resetForm();
     renderList();
     setStatus(statusEl, `Deleted ${targets.length}.`, 'ok');

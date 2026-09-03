@@ -165,15 +165,23 @@ export async function commitFiles(
   return { sha: commit.sha, url: commit.html_url };
 }
 
-/** Whole content inventory in one request. */
-export async function listContent(): Promise<{ path: string; sha: string }[]> {
+/**
+ * Whole content inventory in one request.
+ *
+ * `head` is the branch's commit SHA and is the right cache key for anything
+ * derived from this listing: it changes on every commit, and only on a commit.
+ */
+export async function listContent(): Promise<{
+  head: string;
+  files: { path: string; sha: string }[];
+}> {
   const ref = await gh(`/repos/${OWNER}/${REPO}/git/ref/heads/${BRANCH}`);
-  const tree = await gh(
-    `/repos/${OWNER}/${REPO}/git/trees/${ref.object.sha}?recursive=1`,
-  );
-  return (tree.tree as any[])
+  const head: string = ref.object.sha;
+  const tree = await gh(`/repos/${OWNER}/${REPO}/git/trees/${head}?recursive=1`);
+  const files = (tree.tree as any[])
     .filter((n) => n.type === 'blob' && /^src\/content\/[^/]+\/[^/]+\.md$/.test(n.path))
     .map((n) => ({ path: n.path, sha: n.sha }));
+  return { head, files };
 }
 
 export async function readFile(path: string): Promise<string> {
