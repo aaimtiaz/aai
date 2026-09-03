@@ -1,0 +1,15 @@
+---
+title: A late afternoon
+date: 2023-09-05
+lang: en
+form: poem
+excerpt: A late afternoon 1827, September 4, 2023 Jomtien Beach, Thailand
+tags: []
+draft: true
+source: facebook
+---
+
+A late afternoon
+
+1827, September 4, 2023
+Jomtien Beach, Thailand
