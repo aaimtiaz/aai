@@ -8,7 +8,7 @@ lang: en
 excerpt: Undergraduate physics teaching at Daffodil International University, Dhaka.
 tags:
   - teaching
-draft: true
+draft: false
 source: original
 ---
 
