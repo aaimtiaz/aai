@@ -5,7 +5,6 @@ lang: en
 location:
   name: sylhet-jaflong
 cover: ./images/sylhet-jaflong-01.webp
-coverAlt: ""
 gallery:
   - src: ./images/sylhet-jaflong-02.webp
     alt: ""
@@ -44,7 +43,7 @@ gallery:
 excerpt: 18 photographs.
 tags:
   - travel
-draft: true
+draft: false
 source: facebook
 ---
 
