@@ -230,6 +230,56 @@ function titleFrom(body) {
   return t.length > 70 ? t.slice(0, 67).trimEnd() + '…' : t;
 }
 
+/**
+ * Which posts are actually travel.
+ *
+ * Facebook's own `place` tags are close to useless here: of nine tags, only
+ * two are journeys. One SUST campus post is captioned "Memories from the New
+ * Zealand trip" as an in-joke about a spot on campus, and would have become an
+ * international travel entry. Meanwhile a dozen unmistakable trips carry no
+ * place tag at all.
+ *
+ * So trips are identified by date window plus a phrase from the post itself,
+ * both taken from the export. A post must match the window AND the phrase, so
+ * an unrelated post from the same week is not swept in.
+ *
+ * Deliberately NOT here: the "একদা দুবাই গিয়েছিলুম" post, which is sarcasm
+ * rather than a trip to Dubai; and the protest, farewell and workshop
+ * galleries, which are photo-heavy but are not travel.
+ */
+const TRIPS = [
+  { from: '2024-06-20', to: '2024-07-10', match: /chiang mai|day_\d|night market/i,
+    title: 'Chiang Mai', place: 'Chiang Mai, Thailand' },
+  { from: '2023-08-20', to: '2023-09-10', match: /chiang mai|jomtien|narit|astro101/i,
+    title: 'Chiang Mai and Jomtien', place: 'Thailand' },
+  { from: '2025-06-15', to: '2025-06-25', match: /বিছানাকান্দি|জাফলং|রাতারগুল|ratargul|bichanakandi|jaflong/i,
+    title: 'Bichanakandi, Jaflong and Ratargul', place: 'Sylhet' },
+  { from: '2024-12-28', to: '2025-01-05', match: /panchagarh|nilphamari|lalmonirhat|kurigram|cycling/i,
+    title: 'Panchagarh to Sherpur by bicycle', place: 'Northern Bangladesh' },
+  { from: '2023-01-25', to: '2023-02-05', match: /jaintapur|cycle_ride|cycle ride/i,
+    title: 'Jaintapur ride', place: 'Sylhet' },
+  { from: '2018-08-15', to: '2018-08-22', match: /বিছানাকান্দি|bichanakandi/i,
+    title: 'Bichanakandi', place: 'Sylhet' },
+  { from: '2021-02-28', to: '2021-03-05', match: /saint_martin|saint martin|সেন্ট মার্টিন/i,
+    title: "Saint Martin's Island", place: "Saint Martin's Island" },
+  { from: '2025-03-05', to: '2025-03-12', match: /munshiganj|bhagyakul|padma/i,
+    title: 'Munshiganj and the Padma', place: 'Munshiganj' },
+  { from: '2016-08-08', to: '2016-08-16', match: /চাবাগান|সীমান্ত|tea garden/i,
+    title: 'Tea gardens and the border', place: 'Sylhet' },
+  { from: '2022-09-24', to: '2022-09-30', match: /night sky|রাতের আকাশ|silence/i,
+    title: 'A night ride under a dark sky', place: 'Bangladesh' },
+];
+
+const inWindow = (ts, t) => {
+  const d = new Date(ts * 1000).toISOString().slice(0, 10);
+  return d >= t.from && d <= t.to;
+};
+
+/** Returns the matching trip, or undefined. Requires BOTH signals. */
+function tripFor(ts, body) {
+  return TRIPS.find((t) => inWindow(ts, t) && t.match.test(body));
+}
+
 const usedSlugs = new Set();
 
 /** `hint` lets albums borrow the romanised name Facebook already used for the
@@ -393,21 +443,41 @@ const MAX_IMAGES = 5;
  */
 const MAX_IMAGES_WRITING = 1;
 
+let tripPosts = 0;
+
 for (const c of unique.slice(0, LIMIT)) {
   const form = guessForm(c.body);
   const body = form === 'poem' ? c.body : normaliseProse(c.body);
   const title = titleFrom(c.body);
   if (!title) continue;
 
-  const slug = slugify(title, c.ts);
-  const dir = 'src/content/writing';
+  // A post that matches a known trip goes to travel and keeps its gallery;
+  // everything else is writing and takes a cover only.
+  const trip = tripFor(c.ts, c.body);
+  const collection = trip ? 'travel' : 'writing';
+  const maxImages = trip ? MAX_IMAGES : MAX_IMAGES_WRITING;
+  if (trip) tripPosts++;
+
+  // A trip can span many posts — Chiang Mai is thirteen, serialised day_0 to
+  // day_12 — so they cannot all just take the trip's name or they arrive as
+  // thirteen identically-titled entries. Keep the post's own title where it
+  // says something, and expand a bare `day_N` marker into a readable one.
+  let entryTitle = trip ? trip.title : title;
+  if (trip) {
+    const day = c.body.match(/\bday[_\s-]?(\d{1,2})\b/i);
+    if (day) entryTitle = `${trip.title}, day ${Number(day[1])}`;
+    else if (title.length > 12 && !/^\W*$/.test(title)) entryTitle = title;
+  }
+
+  const slug = slugify(entryTitle, c.ts);
+  const dir = `src/content/${collection}`;
   const mdPath = `${dir}/${slug}.md`;
   if (existsSync(mdPath)) { skipped++; continue; }
 
-  // Cover first, then up to MAX_IMAGES-1 more as a gallery.
+  // Cover first, then the rest as a gallery.
   let cover, coverCaption;
   const gallery = [];
-  for (const [i, photo] of c.photos.slice(0, MAX_IMAGES_WRITING).entries()) {
+  for (const [i, photo] of c.photos.slice(0, maxImages).entries()) {
     const src = findMedia(photo.uri);
     if (!src) continue;
     const name = i === 0 ? `${slug}.webp` : `${slug}-${i + 1}.webp`;
@@ -430,14 +500,16 @@ for (const c of unique.slice(0, LIMIT)) {
   }
 
   const data = {
-    title,
+    title: entryTitle,
     date: new Date(c.ts * 1000).toISOString().slice(0, 10),
     lang: detectLang(c.body),
-    form,
+    // `form` is a writing-only field; travel has no such thing in its schema.
+    ...(trip ? { location: { name: trip.place } } : { form }),
     ...(cover ? { cover, coverAlt: '' } : {}),
     ...(coverCaption ? { coverCaption } : {}),
+    ...(gallery.length ? { gallery } : {}),
     excerpt: tidy(c.body).replace(/\s+/g, ' ').slice(0, 150),
-    tags: c.kind === 'archive' ? ['unpublished'] : [],
+    tags: trip ? ['travel'] : c.kind === 'archive' ? ['unpublished'] : [],
     draft: true,                 // never live from an automated import
     source: 'facebook',
   };
@@ -518,7 +590,8 @@ for (const a of albums) {
 const mb = (n) => (n / 1024 / 1024).toFixed(2) + ' MB';
 console.log(`
 ${DRY_RUN ? 'DRY RUN — nothing was written.' : 'Done.'}
-  writing drafts   ${written}   (${withCover} with a cover, ${galleryTotal} extra images)
+  writing drafts   ${written - tripPosts}   (${withCover} with a cover)
+  trip posts       ${tripPosts}   (matched a known trip by date + phrase)
   travel drafts    ${albumsWritten}   (${galleryImages} gallery images)
   skipped          ${skipped}   (already existed)
   media            ${imgBefore ? `${mb(imgBefore)} -> ${mb(imgAfter)}` : 'none'}${imgSkipped ? `, ${imgSkipped} skipped` : ''}
