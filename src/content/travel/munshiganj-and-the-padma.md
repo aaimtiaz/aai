@@ -5,7 +5,6 @@ lang: bn
 location:
   name: Munshiganj
 cover: ./images/munshiganj-and-the-padma.webp
-coverAlt: ""
 gallery:
   - src: ./images/munshiganj-and-the-padma-2.webp
     alt: ""
@@ -18,7 +17,7 @@ gallery:
 excerpt: 28 Jan 2025 A day-outing to Munshiganj with dear friend Liton Sir on his two-wheeler... দিনটা কেমন ছিল? শীত চলে যাওয়ার সময়ের হালকা রোদ আর ঠান্ডা বাত
 tags:
   - travel
-draft: true
+draft: false
 source: facebook
 ---
 
