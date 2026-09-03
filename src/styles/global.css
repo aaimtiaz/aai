@@ -356,6 +356,10 @@ main { padding-block: var(--space-8); }
 /* The theme toggle carries both icons and reveals one, driven by the same
    aria-pressed attribute that conveys state to assistive tech — so the visual
    and the accessible state cannot drift apart. */
-.theme-toggle .theme-icon--sun { display: none; }
-.theme-toggle[aria-pressed='true'] .theme-icon--moon { display: none; }
-.theme-toggle[aria-pressed='true'] .theme-icon--sun { display: inline-block; }
+/* Both class names on the selector so this reaches (0,3,0) and outranks
+   Icon.astro's own `.icon` rule, which Astro scopes to `.icon[data-astro-cid]`
+   — that is (0,2,0) and, being emitted after global.css, was winning the tie
+   and showing the moon and the sun at the same time. */
+.theme-toggle .theme-icon.theme-icon--sun { display: none; }
+.theme-toggle[aria-pressed='true'] .theme-icon.theme-icon--moon { display: none; }
+.theme-toggle[aria-pressed='true'] .theme-icon.theme-icon--sun { display: inline-block; }
