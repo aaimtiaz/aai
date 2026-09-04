@@ -15,6 +15,8 @@ gallery:
     alt: ""
   - src: ./images/sylhet-jaflong-05.webp
     alt: ""
+mode: hike
+distanceKm: 26
 excerpt: 5 photographs.
 tags:
   - travel

@@ -4,6 +4,7 @@ import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { getPublished, displayDate, tagSlug } from '../../lib/content';
 import { site } from '../../data/site';
+import { articleSchema, crumbsFor } from '../../lib/schema';
 
 export async function getStaticPaths() {
   const all = await getPublished('travel');
@@ -14,17 +15,31 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 const d = entry.data;
 
-const schema = [{
-  '@context': 'https://schema.org',
-  '@type': 'BlogPosting',
-  headline: d.title,
-  datePublished: d.date.toISOString(),
-  inLanguage: d.lang,
-  author: { '@type': 'Person', name: site.name },
-  ...(d.excerpt ? { description: d.excerpt } : {}),
-}];
+const url = new URL(Astro.url.pathname, Astro.site).href;
+const personId = new URL('/#person', Astro.site).href;
+// Astro's processed image, made absolute — this is what makes the entry
+// eligible for Article rich results and gives it its own share card.
+const ogImage = d.cover?.src ? new URL(d.cover.src, Astro.site).href : undefined;
+
+const schema = [articleSchema({
+  type: 'BlogPosting',
+  title: d.title,
+  url, siteUrl: Astro.site!.href,
+  date: d.date,
+  updated: d.updated,
+  lang: d.lang,
+  description: d.excerpt,
+  image: ogImage,
+  
+  authorName: site.name,
+  personId,
+})];
+const crumbs = crumbsFor('travel', 'Travel', d.title);
 ---
-<Base title={d.title} description={d.excerpt} type="article" publishedTime={d.date} lang={d.lang} schema={schema}>
+<Base title={d.title} description={d.excerpt} type="article" publishedTime={d.date} lang={d.lang} schema={schema}
+  crumbs={crumbs}
+  image={ogImage}
+  imageAlt={d.coverAlt || d.title}>
   <article class="wrap travel">
     <p class="back"><a href="/travel/">← Travel</a></p>
     <header>
@@ -37,7 +52,7 @@ const schema = [{
 
     {d.cover && (
       <figure class="travel__figure">
-        <Image src={d.cover} alt={d.coverAlt || ''} width={1100} height={700} />
+        <Image src={d.cover} alt={d.coverAlt || d.title} width={1100} height={700} />
         {d.coverCaption && <figcaption>{d.coverCaption}</figcaption>}
       </figure>
     )}
@@ -48,7 +63,7 @@ const schema = [{
       <section class="gallery" aria-label="Photographs">
         {d.gallery.map((g) => (
           <figure class="gallery__item">
-            <Image src={g.src} alt={g.alt} width={700} height={500} loading="lazy" />
+            <Image src={g.src} alt={g.alt || `${d.title}`} width={700} height={500} loading="lazy" />
             {g.credit && <figcaption class="gallery__credit">{g.credit}</figcaption>}
           </figure>
         ))}

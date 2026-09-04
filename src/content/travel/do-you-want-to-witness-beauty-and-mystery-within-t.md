@@ -14,6 +14,8 @@ gallery:
     alt: ""
   - src: ./images/do-you-want-to-witness-beauty-and-mystery-within-t-5.webp
     alt: ""
+mode: cycle
+distanceKm: 45
 excerpt: Do you want to witness beauty and mystery within the darkness? Let your “bike” make some noise in silence. And to watch the most gorgeous "night sky,"
 tags:
   - travel

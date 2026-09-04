@@ -15,6 +15,7 @@ gallery:
     alt: ""
   - src: ./images/chiang-mai-day-12-5.webp
     alt: ""
+mode: road
 excerpt: "day_12: the very last day in Chiang Mai"
 tags:
   - travel

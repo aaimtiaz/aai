@@ -1,0 +1,56 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getPublished, byDateDesc } from '../../lib/content';
+
+const all = (await getPublished('photography')).sort(byDateDesc);
+
+// Group by series, keeping the newest series first.
+const series = new Map<string, typeof all>();
+for (const e of all) {
+  const key = e.data.series ?? 'Photographs';
+  if (!series.has(key)) series.set(key, [] as unknown as typeof all);
+  (series.get(key) as any).push(e);
+}
+const frames = all.reduce((n, e) => n + 1 + e.data.gallery.length, 0);
+---
+<Base
+  title="Photography"
+  description="Photographs from the road — night skies, river mornings, and a lot of kilometres by bicycle."
+>
+  <div class="wrap">
+    <h1>Photography</h1>
+    <p class="lede">
+      Why do people take photographs? Maybe it is the quiet fear that the moment
+      may never return.
+    </p>
+
+    {all.length === 0 ? (
+      <p class="empty-state">Nothing published here yet.</p>
+    ) : (
+      <>
+        <p class="count">{frames} photographs across {all.length} set{all.length === 1 ? '' : 's'}.</p>
+        {[...series.entries()].map(([name, entries]) => (
+          <section class="series">
+            <h2 class="section-label">{name}</h2>
+            <div class="grid grid--3up">
+              {entries.map((e) => (
+                <PostCard href={`/photography/${e.id}/`} data={e.data}
+                          kind={`${e.data.gallery.length + 1} photographs`} />
+              ))}
+            </div>
+          </section>
+        ))}
+      </>
+    )}
+  </div>
+</Base>
+
+<style>
+  .lede { font-size: var(--step-1); color: var(--text-muted); margin-block: var(--space-4) var(--space-3); max-width: var(--measure); font-style: italic; }
+  .count { color: var(--text-muted); font-size: var(--step--1); margin-block-end: var(--space-8); }
+  .series { margin-block-end: var(--space-10); }
+  .grid--3up { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 60rem) { .grid--3up { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 38rem) { .grid--3up { grid-template-columns: minmax(0, 1fr); } }
+</style>

@@ -13,6 +13,7 @@ gallery:
     alt: ""
   - src: ./images/chiang-mai-day-2-4.webp
     alt: ""
+mode: road
 excerpt: day_2 in Chiang Mai
 tags:
   - travel

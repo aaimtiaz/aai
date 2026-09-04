@@ -15,6 +15,7 @@ gallery:
     alt: ""
   - src: ./images/chiang-mai-day-6-5.webp
     alt: ""
+mode: road
 excerpt: day_6 in Chiang Mai No work today...!!
 tags:
   - travel

@@ -9,6 +9,7 @@ coverAlt: ""
 gallery:
   - src: ./images/chiang-mai-day-9-2.webp
     alt: ""
+mode: road
 excerpt: day_9 in Chiang Mai
 tags:
   - travel

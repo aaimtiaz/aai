@@ -13,6 +13,7 @@ gallery:
     alt: ""
   - src: ./images/chiang-mai-day-5-4.webp
     alt: ""
+mode: road
 excerpt: day_5 in Chiang Mai Things are getting started only...
 tags:
   - travel

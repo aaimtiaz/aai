@@ -65,6 +65,11 @@ const travel = defineCollection({
       location: z
         .object({ name: z.string(), country: z.string().optional() })
         .optional(),
+      // How the trip was made, and how far. Drives the map pins and the
+      // summary strip on /travel/. Both optional — plenty of trips are just
+      // "went somewhere".
+      mode: z.enum(['cycle', 'hike', 'island', 'mountain', 'road']).optional(),
+      distanceKm: z.number().optional(),
       // `credit` exists because a gallery image previously had nowhere to
       // carry a photographer's name — which is how four photographs by
       // someone else shipped uncredited.
@@ -130,6 +135,32 @@ const outreach = defineCollection({
     }),
 });
 
+/**
+ * Photography. A collection rather than a static gallery page, so new sets can
+ * be posted from /admin/ the same way writing is.
+ */
+const photography = defineCollection({
+  loader: md('photography'),
+  schema: ({ image }) =>
+    z.object({
+      ...base,
+      ...cover(image),
+      location: z.object({ name: z.string(), country: z.string().optional() }).optional(),
+      /** Groups related sets, e.g. "Night sky" or "By the river". */
+      series: z.string().optional(),
+      gallery: z
+        .array(
+          z.object({
+            src: image(),
+            alt: z.string().default(''),
+            caption: z.string().optional(),
+            credit: z.string().optional(),
+          }),
+        )
+        .default([]),
+    }),
+});
+
 /** Standalone prose blocks (the home bio) kept as content, not markup. */
 const pages = defineCollection({
   loader: md('pages'),
@@ -141,4 +172,4 @@ const pages = defineCollection({
     }),
 });
 
-export const collections = { writing, travel, research, teaching, outreach, pages };
+export const collections = { writing, travel, research, teaching, outreach, photography, pages };

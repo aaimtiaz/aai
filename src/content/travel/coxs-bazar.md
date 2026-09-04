@@ -16,6 +16,7 @@ gallery:
     alt: ""
   - src: ./images/coxs-bazar-05.webp
     alt: ""
+mode: island
 excerpt: 5 photographs.
 tags:
   - travel

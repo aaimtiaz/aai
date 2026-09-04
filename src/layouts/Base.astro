@@ -16,6 +16,8 @@ interface Props {
   type?: 'website' | 'article';
   publishedTime?: Date;
   noindex?: boolean;
+  imageAlt?: string;
+  crumbs?: { name: string; href: string }[];
   lang?: string;
   schema?: Record<string, unknown>[];
   /** Admin and other tool pages opt out of analytics. */
@@ -28,7 +30,7 @@ const updated = await siteUpdatedAt();
 <!doctype html>
 <html lang={lang}>
   <head>
-    <BaseHead {...head} />
+    <BaseHead {...head} lang={lang} />
     {analytics && !head.noindex && <Analytics />}
   </head>
   <body>

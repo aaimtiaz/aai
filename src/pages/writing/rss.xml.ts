@@ -8,4 +8,5 @@ export const GET: APIRoute = async (ctx) =>
     title: `${site.name} — Writing`,
     description: 'Poetry and prose in English and Bengali.',
     siteUrl: ctx.site,
+    self: '/writing/rss.xml',
   });

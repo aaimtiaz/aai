@@ -6,6 +6,7 @@ location:
   name: Thailand
 cover: ./images/a-late-afternoon.webp
 coverAlt: ""
+mode: road
 excerpt: A late afternoon 1827, September 4, 2023 Jomtien Beach, Thailand
 tags:
   - travel

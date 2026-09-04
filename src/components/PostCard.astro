@@ -17,8 +17,11 @@ const { href, data, kind } = Astro.props;
 <article class="card">
   {data.cover && (
     <div class="card__media">
-      {/* alt="" — the title is right there; repeating it makes screen
-          readers announce the same string twice. */}
+      {/* alt="" is correct HERE and only here: this thumbnail sits inside a
+          card whose <h3> already carries the title, so describing it again
+          makes a screen reader read the same string twice. Entry pages are
+          the opposite case — there the cover is standalone content and gets
+          a real alt. */}
       <Image src={data.cover} alt={data.coverAlt || ''} width={480} height={320} loading="lazy" />
     </div>
   )}

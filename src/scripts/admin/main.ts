@@ -12,7 +12,7 @@ const app = $('app');
 const statusEl = $('status');
 const loginStatus = $('login-status');
 
-type Collection = 'writing' | 'travel' | 'outreach' | 'teaching';
+type Collection = 'writing' | 'travel' | 'photography' | 'outreach' | 'teaching';
 
 /** Which file is being edited. null means a new post. */
 let editingPath: string | null = null;

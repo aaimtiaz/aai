@@ -8,6 +8,7 @@ cover: ./images/thailand-01.webp
 gallery:
   - src: ./images/thailand-02.webp
     alt: ""
+mode: road
 excerpt: 2 photographs.
 tags:
   - travel

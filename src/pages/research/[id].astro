@@ -4,6 +4,7 @@ import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { getPublished, tagSlug } from '../../lib/content';
 import { site } from '../../data/site';
+import { articleSchema, crumbsFor } from '../../lib/schema';
 
 export async function getStaticPaths() {
   const all = await getPublished('research');
@@ -15,17 +16,26 @@ const { Content } = await render(entry);
 const d = entry.data;
 const pub = d.publication;
 
-const schema = pub
-  ? [{
-      '@context': 'https://schema.org',
-      '@type': 'ScholarlyArticle',
-      headline: d.title,
-      datePublished: d.date.toISOString(),
-      ...(pub.doi ? { sameAs: `https://doi.org/${pub.doi}` } : {}),
-      ...(pub.venue ? { publication: pub.venue } : {}),
-      author: { '@type': 'Person', name: site.name },
-    }]
-  : [];
+const url = new URL(Astro.url.pathname, Astro.site).href;
+const personId = new URL('/#person', Astro.site).href;
+// Astro's processed image, made absolute — this is what makes the entry
+// eligible for Article rich results and gives it its own share card.
+const ogImage = d.cover?.src ? new URL(d.cover.src, Astro.site).href : undefined;
+
+const schema = [articleSchema({
+  type: 'ScholarlyArticle',
+  title: d.title,
+  url, siteUrl: Astro.site!.href,
+  date: d.date,
+  updated: d.updated,
+  lang: 'en',
+  description: d.excerpt,
+  image: ogImage,
+  publication: d.publication,
+  authorName: site.name,
+  personId,
+})];
+const crumbs = crumbsFor('research', 'Research', d.title);
 ---
 <Base
   title={d.title}
@@ -33,6 +43,9 @@ const schema = pub
   type="article"
   publishedTime={d.date}
   schema={schema}
+  crumbs={crumbs}
+  image={ogImage}
+  imageAlt={d.coverAlt || d.title}
 >
   <article class="wrap">
     <header class="entry-head">
@@ -52,7 +65,7 @@ const schema = pub
 
     {d.cover && (
       <figure class="entry-figure">
-        <Image src={d.cover} alt={d.coverAlt || ''} width={900} height={570} />
+        <Image src={d.cover} alt={d.coverAlt || d.title} width={900} height={570} />
         {d.coverCaption && <figcaption>{d.coverCaption}</figcaption>}
       </figure>
     )}

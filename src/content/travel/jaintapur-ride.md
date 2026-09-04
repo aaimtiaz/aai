@@ -14,6 +14,8 @@ gallery:
     alt: ""
   - src: ./images/jaintapur-ride-5.webp
     alt: ""
+mode: cycle
+distanceKm: 115
 excerpt: "#Cycle_Ride ~115km, Jaintapur, Sylhet, 21 Jan 23 Life moves pretty fast, you don't stop and look around once in a while, you could miss it. Remember, "
 tags:
   - travel

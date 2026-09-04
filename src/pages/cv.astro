@@ -15,6 +15,52 @@ const ICONS: Record<string, 'orcid' | 'scholar' | 'github' | 'external'> = {
   orcid: 'orcid', scholar: 'scholar', github: 'github',
 };
 
+/* The CV is the highest-intent page on the site and had the thinnest markup —
+   only the generic sitewide Person. Everything below is already typed data in
+   site.ts, so it costs nothing to express it properly. */
+const personId = new URL('/#person', Astro.site).href;
+const profileSchema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    '@id': new URL('/cv/', Astro.site).href,
+    mainEntity: { '@id': personId },
+    dateModified: new Date().toISOString().slice(0, 10),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@id': personId,
+    '@type': 'Person',
+    name: site.name,
+    jobTitle: site.affiliation.role,
+    worksFor: {
+      '@type': 'Organization',
+      name: `${site.affiliation.org}, ${site.affiliation.institution}`,
+    },
+    alumniOf: education.map((e) => ({
+      '@type': 'CollegeOrUniversity',
+      name: e.institution,
+    })),
+    hasCredential: education.map((e) => ({
+      '@type': 'EducationalOccupationalCredential',
+      credentialCategory: 'degree',
+      name: e.degree,
+      dateCreated: e.year,
+    })),
+    award: awards.map((a) => a.title),
+    knowsAbout: [
+      'Observational astrophysics', 'Galaxy evolution',
+      'Strong gravitational lensing', 'Stellar populations',
+      'Astronomical instrumentation', ...tools.research,
+    ],
+    knowsLanguage: [
+      { '@type': 'Language', name: 'Bengali' },
+      { '@type': 'Language', name: 'English' },
+    ],
+    ...(profileLinks.length ? { sameAs: profileLinks.map((l) => l.url) } : {}),
+  },
+];
+
 /* Experience, schools and outreach are transcribed from the CV. They live
    here rather than in a collection because they are CV facts, not posts —
    the teaching and outreach *entries* stay draft-gated separately. */
@@ -86,6 +132,8 @@ const conferences = [
 <Base
   title="Curriculum Vitae"
   description={`Curriculum vitae of ${site.name} — observational astrophysics, galaxy evolution and instrumentation.`}
+  schema={profileSchema}
+  crumbs={[{ name: 'Home', href: '/' }, { name: 'Curriculum Vitae', href: '/cv/' }]}
 >
   <div class="wrap cv">
     <header class="cv__head">

@@ -1,0 +1,107 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { getPublished, displayDate, tagSlug } from '../../lib/content';
+import { site } from '../../data/site';
+import { articleSchema, crumbsFor } from '../../lib/schema';
+
+export async function getStaticPaths() {
+  const all = await getPublished('photography');
+  return all.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+
+const url = new URL(Astro.url.pathname, Astro.site).href;
+const personId = new URL('/#person', Astro.site).href;
+// Astro's processed image, made absolute — this is what makes the entry
+// eligible for Article rich results and gives it its own share card.
+const ogImage = d.cover?.src ? new URL(d.cover.src, Astro.site).href : undefined;
+
+const schema = [articleSchema({
+  type: 'ImageGallery',
+  title: d.title,
+  url, siteUrl: Astro.site!.href,
+  date: d.date,
+  updated: d.updated,
+  lang: 'en',
+  description: d.excerpt,
+  image: ogImage,
+  
+  authorName: site.name,
+  personId,
+})];
+const crumbs = crumbsFor('photography', 'Photography', d.title);
+---
+<Base title={d.title} description={d.excerpt} type="article" publishedTime={d.date} schema={schema}
+  crumbs={crumbs}
+  image={ogImage}
+  imageAlt={d.coverAlt || d.title}>
+  <article class="wrap photo">
+    <p class="back"><a href="/photography/"><Icon name="arrowLeft" size={16} /> Photography</a></p>
+    <header>
+      <h1>{d.title}</h1>
+      <p class="meta">
+        {d.series && <span>{d.series}</span>}
+        {d.location?.name && <span>{d.location.name}</span>}
+        <time datetime={d.date.toISOString()}>{displayDate(d)}</time>
+      </p>
+    </header>
+
+    <div class="prose photo__intro"><Content /></div>
+
+    {d.cover && (
+      <figure class="photo__lead">
+        <Image src={d.cover} alt={d.coverAlt || d.title} width={1400} height={950} />
+        {d.coverCaption && <figcaption>{d.coverCaption}</figcaption>}
+      </figure>
+    )}
+
+    {d.gallery.length > 0 && (
+      <section class="frames" aria-label="Photographs">
+        {d.gallery.map((g) => (
+          <figure class="frames__item">
+            <Image src={g.src} alt={g.alt || d.title} width={1100} height={760} loading="lazy" />
+            {(g.caption || g.credit) && (
+              <figcaption>
+                {g.caption}{g.caption && g.credit ? ' · ' : ''}{g.credit}
+              </figcaption>
+            )}
+          </figure>
+        ))}
+      </section>
+    )}
+
+    {d.tags.length > 0 && (
+      <ul class="tag-list photo__tags">
+        {d.tags.map((t) => <li><a href={`/tags/${tagSlug(t)}/`}>{t}</a></li>)}
+      </ul>
+    )}
+  </article>
+</Base>
+
+<style>
+  .photo { max-width: 62rem; }
+  .back { margin-block-end: var(--space-5); }
+  .back a { display: inline-flex; align-items: center; gap: var(--space-2); text-decoration: none; }
+  header .meta { margin-block-start: var(--space-3); }
+  .photo__intro { margin-block: var(--space-5) var(--space-7); max-width: var(--measure); }
+
+  .photo__lead { margin: 0 0 var(--space-8); }
+  .photo__lead img { width: 100%; border-radius: var(--radius-lg); }
+
+  /* One column: photographs get the full measure rather than being tiled. */
+  .frames { display: grid; gap: var(--space-8); }
+  .frames__item { margin: 0; }
+  .frames__item img { width: 100%; border-radius: var(--radius-md); }
+  .frames figcaption, .photo__lead figcaption {
+    margin-block-start: var(--space-3);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+  .photo__tags { margin-block-start: var(--space-10); }
+</style>

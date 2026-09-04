@@ -14,6 +14,8 @@ gallery:
     alt: ""
   - src: ./images/bichanakandi-jaflong-and-ratargul-day-1-5.webp
     alt: ""
+mode: hike
+distanceKm: 26
 excerpt: Why do people take photographs? Maybe it’s the quiet fear that the moment may never return. Or perhaps a moment feels incomplete until it’s shared wit
 tags:
   - travel

@@ -15,6 +15,7 @@ gallery:
     alt: ""
   - src: ./images/bandarban-05.webp
     alt: ""
+mode: mountain
 excerpt: 5 photographs.
 tags:
   - travel

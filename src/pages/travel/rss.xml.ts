@@ -8,4 +8,5 @@ export const GET: APIRoute = async (ctx) =>
     title: `${site.name} — Travel`,
     description: 'Travel writing and photographs.',
     siteUrl: ctx.site,
+    self: '/travel/rss.xml',
   });

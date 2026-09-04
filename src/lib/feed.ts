@@ -8,6 +8,8 @@ export async function buildFeed(opts: {
   title: string;
   description: string;
   siteUrl: URL | undefined;
+  /** This feed's own path, for the atom self-link. */
+  self: string;
 }) {
   const groups = await Promise.all(
     opts.sections.map(async (s) =>
@@ -25,11 +27,19 @@ export async function buildFeed(opts: {
       link: `/${path}/${e.id}/`,
     }));
 
+  const latest = items.reduce<Date | undefined>(
+    (n, i) => (!n || i.pubDate > n ? i.pubDate : n), undefined);
+
   return rss({
     title: opts.title,
     description: opts.description,
     site: opts.siteUrl!,
     items,
-    customData: `<language>en</language><managingEditor>${site.email} (${site.name})</managingEditor>`,
+    xmlns: { atom: 'http://www.w3.org/2005/Atom' },
+    customData:
+      `<language>en</language>` +
+      `<managingEditor>${site.email} (${site.name})</managingEditor>` +
+      `<atom:link href="${new URL(opts.self, opts.siteUrl)}" rel="self" type="application/rss+xml"/>` +
+      (latest ? `<lastBuildDate>${latest.toUTCString()}</lastBuildDate>` : ''),
   });
 }

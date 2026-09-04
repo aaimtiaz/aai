@@ -9,6 +9,12 @@ interface Props {
   type?: 'website' | 'article';
   publishedTime?: Date;
   noindex?: boolean;
+  /** Describes the OG image, for anyone whose reader announces it. */
+  imageAlt?: string;
+  /** BCP-47-ish page language, mapped to og:locale. */
+  lang?: string;
+  /** Breadcrumb trail, root-first. Rendered as BreadcrumbList JSON-LD. */
+  crumbs?: { name: string; href: string }[];
   /** Extra JSON-LD objects to emit alongside the sitewide Person. */
   schema?: Record<string, unknown>[];
 }
@@ -20,6 +26,9 @@ const {
   type = 'website',
   publishedTime,
   noindex = false,
+  imageAlt,
+  lang = 'en',
+  crumbs = [],
   schema = [],
 } = Astro.props;
 
@@ -27,9 +36,33 @@ const {
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImage = new URL(image, Astro.site).href;
 const fullTitle = title === site.name ? title : `${title} | ${site.name}`;
+const OG_LOCALE: Record<string, string> = { en: 'en_US', bn: 'bn_BD' };
+
+// A canonical must point at a URL that exists. Astro special-cases 404.astro
+// into /404.html, but Astro.url.pathname still reports "/404/", which is not
+// a real page — so that one page canonicalises to the site root instead.
+const isNotFound = Astro.url.pathname.replace(/\/$/, '') === '/404';
+
+const breadcrumbs = crumbs.length
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: crumbs.map((c, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: c.name,
+        item: new URL(c.href, Astro.site).href,
+      })),
+    }
+  : null;
+
+// A stable @id so the article nodes' author can point at THIS person rather
+// than minting an anonymous duplicate on every page.
+const personId = new URL('/#person', Astro.site).href;
 
 const person = {
   '@context': 'https://schema.org',
+  '@id': personId,
   '@type': 'Person',
   name: site.name,
   email: `mailto:${site.email}`,
@@ -46,7 +79,7 @@ const person = {
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{fullTitle}</title>
 <meta name="description" content={description} />
-<link rel="canonical" href={canonical} />
+<link rel="canonical" href={isNotFound ? new URL('/', Astro.site).href : canonical} />
 {noindex && <meta name="robots" content="noindex, nofollow" />}
 
 <link rel="icon" type="image/png" href="/favicon.png" />
@@ -59,17 +92,26 @@ const person = {
 <meta property="og:description" content={description} />
 <meta property="og:url" content={canonical} />
 <meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+{imageAlt && <meta property="og:image:alt" content={imageAlt} />}
 <meta property="og:site_name" content={site.name} />
+<meta property="og:locale" content={OG_LOCALE[lang] ?? 'en_US'} />
 {publishedTime && <meta property="article:published_time" content={publishedTime.toISOString()} />}
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={fullTitle} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={ogImage} />
+{imageAlt && <meta name="twitter:image:alt" content={imageAlt} />}
 
 <link rel="alternate" type="application/rss+xml" title={`${site.name} — all posts`} href="/rss.xml" />
+{['/writing', '/travel'].filter((sec) => Astro.url.pathname.startsWith(sec)).map((sec) => (
+  <link rel="alternate" type="application/rss+xml" title={`${site.name} — ${sec.slice(1)}`} href={`${sec}/rss.xml`} />
+))}
 
 <script is:inline set:html={JSON.stringify(person)} type="application/ld+json" />
+{breadcrumbs && <script is:inline set:html={JSON.stringify(breadcrumbs)} type="application/ld+json" />}
 {schema.map((s) => <script is:inline set:html={JSON.stringify(s)} type="application/ld+json" />)}
 
 {/* Set the theme before first paint so there is no flash of the wrong palette. */}

@@ -11,6 +11,7 @@ gallery:
     alt: ""
   - src: ./images/chiang-mai-day-3-3.webp
     alt: ""
+mode: road
 excerpt: day_3 in Chiang Mai Eat and focus 😃
 tags:
   - travel

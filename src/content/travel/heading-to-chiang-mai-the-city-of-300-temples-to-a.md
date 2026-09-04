@@ -9,6 +9,7 @@ coverAlt: ""
 gallery:
   - src: ./images/heading-to-chiang-mai-the-city-of-300-temples-to-a-2.webp
     alt: ""
+mode: road
 excerpt: 'Heading to Chiang Mai: The city of 300 temples, to attend "ASTRO101: Hands-On Workshop on Optical Astronomy Research 2023" organised by NARIT.'
 tags:
   - travel

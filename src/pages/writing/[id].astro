@@ -4,6 +4,7 @@ import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import { getPublished, displayDate, tagSlug } from '../../lib/content';
 import { site } from '../../data/site';
+import { articleSchema, crumbsFor } from '../../lib/schema';
 
 export async function getStaticPaths() {
   const all = await getPublished('writing');
@@ -14,15 +15,26 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 const d = entry.data;
 
-const schema = [{
-  '@context': 'https://schema.org',
-  '@type': 'BlogPosting',
-  headline: d.title,
-  datePublished: d.date.toISOString(),
-  inLanguage: d.lang,
-  author: { '@type': 'Person', name: site.name },
-  ...(d.excerpt ? { description: d.excerpt } : {}),
-}];
+const url = new URL(Astro.url.pathname, Astro.site).href;
+const personId = new URL('/#person', Astro.site).href;
+// Astro's processed image, made absolute — this is what makes the entry
+// eligible for Article rich results and gives it its own share card.
+const ogImage = d.cover?.src ? new URL(d.cover.src, Astro.site).href : undefined;
+
+const schema = [articleSchema({
+  type: 'BlogPosting',
+  title: d.title,
+  url, siteUrl: Astro.site!.href,
+  date: d.date,
+  updated: d.updated,
+  lang: d.lang,
+  description: d.excerpt,
+  image: ogImage,
+  
+  authorName: site.name,
+  personId,
+})];
+const crumbs = crumbsFor('writing', 'Writing', d.title);
 ---
 <!-- The whole document is marked bn for a Bengali piece, so screen readers
      switch voice instead of reading Bengali with English phonemes. -->
@@ -33,6 +45,9 @@ const schema = [{
   publishedTime={d.date}
   lang={d.lang}
   schema={schema}
+  crumbs={crumbs}
+  image={ogImage}
+  imageAlt={d.coverAlt || d.title}
 >
   <article class="wrap writing">
     <p class="back"><a href="/writing/">← Writing</a></p>
@@ -47,7 +62,7 @@ const schema = [{
 
     {d.cover && (
       <figure class="writing__figure">
-        <Image src={d.cover} alt={d.coverAlt || ''} width={900} height={600} />
+        <Image src={d.cover} alt={d.coverAlt || d.title} width={900} height={600} />
         {d.coverCaption && <figcaption>{d.coverCaption}</figcaption>}
       </figure>
     )}

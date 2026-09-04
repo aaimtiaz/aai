@@ -1,20 +1,110 @@
 ---
 import Base from '../../layouts/Base.astro';
 import PostCard from '../../components/PostCard.astro';
+import TravelMap from '../../components/TravelMap.astro';
 import { getPublished, byDateDesc } from '../../lib/content';
+import { lookupPlace, MODES, type Mode } from '../../data/places';
+
 const all = (await getPublished('travel')).sort(byDateDesc);
+
+/* Everything below is derived from the entries, so the page describes what is
+   actually published rather than a hand-maintained claim. */
+const cycled = all
+  .filter((e) => e.data.mode === 'cycle' && e.data.distanceKm)
+  .reduce((n, e) => n + (e.data.distanceKm ?? 0), 0);
+const longest = Math.max(0, ...all.filter((e) => e.data.mode === 'cycle').map((e) => e.data.distanceKm ?? 0));
+const hiked = all
+  .filter((e) => e.data.mode === 'hike' && e.data.distanceKm)
+  .reduce((n, e) => n + (e.data.distanceKm ?? 0), 0);
+const countries = new Set(
+  all.map((e) => lookupPlace(e.data.location?.name)?.country).filter(Boolean),
+);
+const byMode = new Map<Mode, number>();
+for (const e of all) if (e.data.mode) byMode.set(e.data.mode, (byMode.get(e.data.mode) ?? 0) + 1);
+
+const stats = [
+  cycled > 0 && { value: `${cycled.toLocaleString()} km`, label: 'ridden, across the trips that recorded a distance' },
+  longest > 0 && { value: `${longest} km`, label: 'longest tour' },
+  hiked > 0 && { value: `${hiked} km`, label: 'on foot' },
+  { value: String(all.length), label: `trip${all.length === 1 ? '' : 's'} in ${countries.size} countr${countries.size === 1 ? 'y' : 'ies'}` },
+].filter(Boolean) as { value: string; label: string }[];
 ---
-<Base title="Travel" description="Travel writing and photographs — mountains, green places, and long rides.">
+<Base
+  title="Travel"
+  description="Where I have been — mountains, islands, tea gardens and a lot of kilometres by bicycle, mapped."
+>
   <div class="wrap">
     <h1>Travel</h1>
-    <p class="lede">Mountains, green places, and the roads between them.</p>
+    <p class="lede">
+      Mostly toward mountains and green places, often by bicycle, usually with a camera.
+    </p>
+
     {all.length === 0 ? (
-      <p class="empty-state">No travel posts yet — the first ones are on their way.</p>
+      <p class="empty-state">No travel posts published yet.</p>
     ) : (
-      <div class="grid grid--2">
-        {all.map((e) => <PostCard href={`/travel/${e.id}/`} data={e.data} kind={e.data.location?.name} />)}
-      </div>
+      <>
+        <TravelMap entries={all} />
+
+        {stats.length > 0 && (
+          <section class="tstats" aria-label="Summary">
+            {stats.map((s) => (
+              <div class="tstats__item">
+                <span class="tstats__value">{s.value}</span>
+                <span class="tstats__label">{s.label}</span>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {byMode.size > 0 && (
+          <ul class="modes" aria-label="How the trips were made">
+            {[...byMode.entries()].sort((a, b) => b[1] - a[1]).map(([m, n]) => (
+              <li><span>{MODES[m].label}</span> <b>{n}</b></li>
+            ))}
+          </ul>
+        )}
+
+        <h2 class="section-label">All trips</h2>
+        <div class="grid grid--3up">
+          {all.map((e) => (
+            <PostCard href={`/travel/${e.id}/`} data={e.data}
+                      kind={e.data.mode ? MODES[e.data.mode].label : e.data.location?.name} />
+          ))}
+        </div>
+      </>
     )}
   </div>
 </Base>
-<style>.lede { font-size: var(--step-1); color: var(--text-muted); margin-block: var(--space-4) var(--space-7); }</style>
+
+<style>
+  .lede { font-size: var(--step-1); color: var(--text-muted); margin-block: var(--space-4) var(--space-7); max-width: var(--measure); }
+
+  .tstats {
+    display: grid; gap: var(--space-5);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+    margin-block-end: var(--space-6);
+  }
+  .tstats__item { display: flex; flex-direction: column; gap: var(--space-1); }
+  .tstats__value {
+    font-family: var(--font-display);
+    font-variation-settings: 'opsz' 60, 'SOFT' 20, 'WONK' 1;
+    font-size: var(--step-3); color: var(--accent-2); line-height: 1;
+  }
+  .tstats__label { font-size: var(--step--1); color: var(--text-muted); line-height: 1.5; }
+
+  .modes {
+    list-style: none; padding: 0; margin-block-end: var(--space-10);
+    display: flex; flex-wrap: wrap; gap: var(--space-2);
+  }
+  .modes li {
+    display: inline-flex; align-items: baseline; gap: var(--space-2);
+    padding: 0.2em 0.7em;
+    border: 1px solid var(--border); border-radius: 999px;
+    font-size: var(--step--1); color: var(--text-muted);
+  }
+  .modes b { color: var(--accent); }
+
+  .grid--3up { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (max-width: 60rem) { .grid--3up { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 38rem) { .grid--3up { grid-template-columns: minmax(0, 1fr); } }
+</style>

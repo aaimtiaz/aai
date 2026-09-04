@@ -13,6 +13,7 @@ gallery:
     alt: ""
   - src: ./images/chiang-mai-day-11-4.webp
     alt: ""
+mode: road
 excerpt: day_11 in Chiang Mai
 tags:
   - travel

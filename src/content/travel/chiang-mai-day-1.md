@@ -11,6 +11,7 @@ gallery:
     alt: ""
   - src: ./images/chiang-mai-day-1-3.webp
     alt: ""
+mode: road
 excerpt: day_1 in Chiang Mai
 tags:
   - travel

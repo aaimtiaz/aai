@@ -11,6 +11,7 @@ gallery:
     alt: ""
   - src: ./images/chiang-mai-day-7-3.webp
     alt: ""
+mode: road
 excerpt: day_7 in Chiang Mai The Sunday Night Market
 tags:
   - travel
