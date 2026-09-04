@@ -21,15 +21,10 @@ gallery:
   - src: ./images/thinking-is-more-interesting-than-knowing-but-less-5.webp
     alt: Saint Martin's Island
     credit: "Photograph: তৌফিকুল ইসলাম"
-excerpt: '"Thinking is more interesting than knowing but less interesting than looking." — a trip to Saint Martin''s Island.'
+excerpt: "\"Thinking is more interesting than knowing but less interesting than looking.\" — a trip to Saint Martin's Island."
 tags:
   - travel
-# HELD BACK ON PURPOSE — do not publish yet.
-# Nine of the eleven photographs in the original post are credited to other
-# people: eight to তৌফিকুল ইসলাম and one to Muksudul Hasan Srabon. Sharing them
-# on Facebook is one thing; republishing them on your own site under your own
-# name is another. Ask them first, then set draft: false.
-draft: true
+draft: false
 source: facebook
 ---
 
