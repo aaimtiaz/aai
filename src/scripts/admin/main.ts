@@ -16,7 +16,7 @@ const app = $('app');
 const statusEl = $('status');
 const loginStatus = $('login-status');
 
-type Collection = 'writing' | 'travel' | 'photography' | 'outreach' | 'teaching';
+type Collection = 'writing' | 'travel' | 'outreach' | 'teaching';
 
 /** Which file is being edited. null means a new post. */
 let editingPath: string | null = null;
@@ -475,7 +475,7 @@ async function save(draft: boolean) {
 
     // Start from the frontmatter the post already had, so fields this form has
     // no input for survive an edit. Rebuilding from an empty object is how
-    // opening a photography set and saving it stripped `series`, `location`
+    // opening an imported set and saving it stripped `series`, `location`
     // and a five-image gallery, and turned `source: facebook` into `original`.
     const data: Record<string, unknown> = { ...editingData };
 

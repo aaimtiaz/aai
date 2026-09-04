@@ -7,7 +7,6 @@ export const GET: APIRoute = async (ctx) =>
     sections: [
       { name: 'writing', path: 'writing' },
       { name: 'travel', path: 'travel' },
-      { name: 'photography', path: 'photography' },
       { name: 'research', path: 'research' },
     ],
     title: site.name,

@@ -44,7 +44,6 @@ export const nav = [
   { href: '/research/', label: 'Research' },
   { href: '/writing/', label: 'Writing' },
   { href: '/travel/', label: 'Travel' },
-  { href: '/photography/', label: 'Photography' },
   { href: '/teaching/', label: 'Teaching' },
   { href: '/outreach/', label: 'Outreach' },
   { href: '/cv/', label: 'CV' },

@@ -136,32 +136,6 @@ const outreach = defineCollection({
     }),
 });
 
-/**
- * Photography. A collection rather than a static gallery page, so new sets can
- * be posted from /admin/ the same way writing is.
- */
-const photography = defineCollection({
-  loader: md('photography'),
-  schema: ({ image }) =>
-    z.object({
-      ...base,
-      ...cover(image),
-      location: z.object({ name: z.string(), country: z.string().optional() }).optional(),
-      /** Groups related sets, e.g. "Night sky" or "By the river". */
-      series: z.string().optional(),
-      gallery: z
-        .array(
-          z.object({
-            src: image(),
-            alt: z.string().default(''),
-            caption: z.string().optional(),
-            credit: z.string().optional(),
-          }),
-        )
-        .default([]),
-    }),
-});
-
 /** Standalone prose blocks (the home bio) kept as content, not markup. */
 /**
  * Page composition, as data.
@@ -196,7 +170,7 @@ const section = ({ image }: { image: () => any }) =>
     variant: z.enum(['body', 'lede']).default('body'),
 
     /** `collection` and `entries`: which collection, and how many. */
-    source: z.enum(['writing', 'travel', 'research', 'teaching', 'outreach', 'photography']).optional(),
+    source: z.enum(['writing', 'travel', 'research', 'teaching', 'outreach']).optional(),
     count: z.number().optional(),
     href: z.string().optional(),
     linkLabel: z.string().optional(),
@@ -228,4 +202,4 @@ const pages = defineCollection({
     }),
 });
 
-export const collections = { writing, travel, research, teaching, outreach, photography, pages };
+export const collections = { writing, travel, research, teaching, outreach, pages };

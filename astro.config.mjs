@@ -11,7 +11,7 @@ import { defineConfig } from 'astro/config';
  * here directly. Drafts are skipped because they never reach the sitemap.
  */
 const ENTRY_DATES = new Map();
-for (const section of ['writing', 'travel', 'research', 'teaching', 'outreach', 'photography']) {
+for (const section of ['writing', 'travel', 'research', 'teaching', 'outreach']) {
   const dir = `./src/content/${section}`;
   if (!existsSync(dir)) continue;
   for (const file of readdirSync(dir).filter((f) => f.endsWith('.md'))) {
