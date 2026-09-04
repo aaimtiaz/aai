@@ -64,7 +64,11 @@ const crumbs = crumbsFor('travel', 'Travel', d.title);
         {d.gallery.map((g) => (
           <figure class="gallery__item">
             <Image src={g.src} alt={g.alt || `${d.title}`} width={700} height={500} loading="lazy" />
-            {g.credit && <figcaption class="gallery__credit">{g.credit}</figcaption>}
+            {(g.caption || g.credit) && (
+              <figcaption class="gallery__credit">
+                {g.caption}{g.caption && g.credit ? ' · ' : ''}{g.credit}
+              </figcaption>
+            )}
           </figure>
         ))}
       </section>

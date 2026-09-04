@@ -122,7 +122,9 @@ export function loadFromPost(
   }
 
   for (const g of (data.gallery ?? []) as any[]) {
-    add(fileOf(g?.src), 'gallery', { alt: g?.alt ?? '', credit: g?.credit ?? '' });
+    add(fileOf(g?.src), 'gallery', {
+      alt: g?.alt ?? '', caption: g?.caption ?? '', credit: g?.credit ?? '',
+    });
   }
 
   // Body images last, so the ones already carrying frontmatter win the slot.
@@ -261,6 +263,10 @@ export function buildSave(slug: string, collection: string, body: string): Image
     .map((i) => ({
       src: `./images/${i.name}`,
       alt: i.alt,
+      // Written back even when empty-checked away, because dropping a field
+      // the editor cannot see is how a five-image gallery was lost by simply
+      // opening the post and saving it again.
+      ...(i.caption ? { caption: i.caption } : {}),
       ...(i.credit ? { credit: i.credit } : {}),
     }));
 

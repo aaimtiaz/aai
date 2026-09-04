@@ -20,6 +20,9 @@ type Collection = 'writing' | 'travel' | 'photography' | 'outreach' | 'teaching'
 
 /** Which file is being edited. null means a new post. */
 let editingPath: string | null = null;
+/** That post's frontmatter as it was on disk, so an edit preserves fields the
+ *  form does not show (series, order, publication, and anything added later). */
+let editingData: Record<string, any> = {};
 let inventory: { path: string; sha: string }[] = [];
 /** Branch head SHA: the cache generation for everything derived from it. */
 let headSha = '';
@@ -431,6 +434,7 @@ function writeForm(d: Partial<ReturnType<typeof readForm>>) {
 
 function resetForm() {
   editingPath = null;
+  editingData = {};
   slugTouched = false;
   resetImages();
   renderImages();
@@ -469,22 +473,28 @@ async function save(draft: boolean) {
     $<HTMLTextAreaElement>('body').value = img.body;
     renderImages();
 
-    const data: Record<string, unknown> = {
-      title: f.title,
-      date: f.date || new Date().toISOString().slice(0, 10),
-      dateNote: f.dateNote,
-      lang: f.lang,
-      excerpt: f.excerpt,
-      tags: f.tags ? f.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
-      draft,
-      source: 'original',
-    };
-    if (img.cover) {
-      data.cover = img.cover;
-      data.coverAlt = img.coverAlt;
-      if (img.coverCaption) data.coverCaption = img.coverCaption;
-    }
-    if (img.gallery.length) data.gallery = img.gallery;
+    // Start from the frontmatter the post already had, so fields this form has
+    // no input for survive an edit. Rebuilding from an empty object is how
+    // opening a photography set and saving it stripped `series`, `location`
+    // and a five-image gallery, and turned `source: facebook` into `original`.
+    const data: Record<string, unknown> = { ...editingData };
+
+    data.title = f.title;
+    data.date = f.date || new Date().toISOString().slice(0, 10);
+    data.dateNote = f.dateNote;
+    data.lang = f.lang;
+    data.excerpt = f.excerpt;
+    data.tags = f.tags ? f.tags.split(',').map((t) => t.trim()).filter(Boolean) : [];
+    data.draft = draft;
+    // Provenance belongs to the post, not to whoever last edited it.
+    data.source = editingData.source ?? 'original';
+
+    // Written unconditionally: `undefined` drops the key, which is what makes
+    // removing the last image actually remove `cover` from the file.
+    data.cover = img.cover;
+    data.coverAlt = img.cover ? img.coverAlt : undefined;
+    data.coverCaption = img.cover && img.coverCaption ? img.coverCaption : undefined;
+    data.gallery = img.gallery.length ? img.gallery : undefined;
     if (f.collection === 'writing') { data.form = f.form; if (f.note) data.note = f.note; }
     if (f.collection === 'travel' && f.location) data.location = { name: f.location };
 
@@ -505,6 +515,8 @@ async function save(draft: boolean) {
 
     try { localStorage.removeItem(draftKey()); } catch {}
     editingPath = mdPath;
+    // The file on disk is now this, so a second save preserves from here.
+    editingData = data;
 
     setStatus(
       statusEl,
@@ -850,6 +862,7 @@ async function openForEdit(path: string) {
     const { data, body } = splitMarkdown(raw);
 
     editingPath = path;
+    editingData = data;
     slugTouched = true;
     loadFromPost(data, body, path.split('/')[2]);
 

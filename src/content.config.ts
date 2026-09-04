@@ -78,6 +78,7 @@ const travel = defineCollection({
           z.object({
             src: image(),
             alt: z.string().default(''),
+            caption: z.string().optional(),
             credit: z.string().optional(),
           }),
         )
