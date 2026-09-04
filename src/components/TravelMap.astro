@@ -11,7 +11,7 @@
  * actually been published. Add a trip to Chile and the frame widens by itself.
  */
 import { feature } from 'topojson-client';
-import worldTopo from 'world-atlas/countries-110m.json';
+import worldTopo from 'world-atlas/countries-50m.json';
 import { lookupPlace, MODES, type Mode } from '../data/places';
 
 interface Pin {
@@ -50,7 +50,9 @@ for (const e of entries) {
 const pins = [...byPlace.values()].sort((a, b) => b.count - a.count);
 
 /* ---- Frame the map on the pins, with padding ---- */
-const W = 760, H = 520, PAD = 0.18;
+const W = 900, H = 480, PAD = 0.25;
+// Never zoom closer than this, in degrees — keeps the country in view.
+const MIN_LON_SPAN = 11, MIN_LAT_SPAN = 7;
 const lons = pins.map((p) => p.lon);
 const lats = pins.map((p) => p.lat);
 // Fall back to Bangladesh if there is nothing to show yet.
@@ -58,8 +60,8 @@ const box = pins.length
   ? { w: Math.min(...lons), e: Math.max(...lons), s: Math.min(...lats), n: Math.max(...lats) }
   : { w: 88, e: 93, s: 20.5, n: 26.7 };
 
-const spanLon = Math.max(box.e - box.w, 2) * (1 + PAD * 2);
-const spanLat = Math.max(box.n - box.s, 2) * (1 + PAD * 2);
+const spanLon = Math.max((box.e - box.w) * (1 + PAD * 2), MIN_LON_SPAN);
+const spanLat = Math.max((box.n - box.s) * (1 + PAD * 2), MIN_LAT_SPAN);
 const midLon = (box.w + box.e) / 2;
 const midLat = (box.n + box.s) / 2;
 
@@ -158,7 +160,7 @@ const modeLabel = (m: Mode[]) => m.map((k) => MODES[k]?.label).filter(Boolean).j
     padding: var(--space-4);
     overflow: hidden;
   }
-  .map svg { width: 100%; height: auto; display: block; }
+  .map svg { width: 100%; height: auto; display: block; max-height: 62vh; }
 
   .map__grat line { stroke: var(--border); stroke-width: 0.5; opacity: 0.7; }
   .map__land path {
