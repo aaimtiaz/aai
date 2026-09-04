@@ -46,7 +46,12 @@ const schema = [{
 
     {d.gallery.length > 0 && (
       <section class="gallery" aria-label="Photographs">
-        {d.gallery.map((g) => <Image src={g.src} alt={g.alt} width={700} height={500} loading="lazy" />)}
+        {d.gallery.map((g) => (
+          <figure class="gallery__item">
+            <Image src={g.src} alt={g.alt} width={700} height={500} loading="lazy" />
+            {g.credit && <figcaption class="gallery__credit">{g.credit}</figcaption>}
+          </figure>
+        ))}
       </section>
     )}
 
@@ -67,6 +72,12 @@ const schema = [{
   /* No `pre-line` here: travel writing is prose, and a forced line break stops
      a line being justified. Paragraph breaks come from blank lines instead. */
   .gallery { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); margin-block-start: var(--space-8); }
-  .gallery img { border-radius: var(--radius-md); width: 100%; }
+  .gallery__item { margin: 0; }
+  .gallery__item img { border-radius: var(--radius-md); width: 100%; }
+  .gallery__credit {
+    margin-block-start: var(--space-2);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
   .travel__tags { margin-block-start: var(--space-8); }
 </style>

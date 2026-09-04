@@ -5,7 +5,8 @@ dateNote: খুব সম্ভবত ২০২২
 lang: bn
 form: poem
 cover: ./images/udash-bikel.webp
-coverAlt: ""
+coverAlt: A road curving through green hills in late afternoon light
+excerpt: "ভাবছি, উদাস হলে কেমন হয়, দেখতে মনের নিস্তব্ধ প্রান্তর। মোজার্টের ছন্দ বলে, “কী হে বাপু, কদ্দুর?”"
 note: এক্সাক্টলি লিখার মূহুর্তের ছবিটা এক্সিডেন্টালি ডিলিট হয়ে গেছে। অইটা আবার আরেক মজার ঘটনা...!
 tags:
   - poetry

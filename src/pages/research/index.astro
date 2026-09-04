@@ -7,6 +7,9 @@ const all = (await getPublished('research')).sort(
   (a, b) => (a.data.order ?? 0) - (b.data.order ?? 0),
 );
 const papers = all.filter((e) => e.data.publication);
+// Derived from the collection, not hand-written, so it cannot drift out of
+// date as projects change status.
+const current = all.filter((e) => e.data.status === 'ongoing');
 
 const STATUS: Record<string, string> = {
   published: 'Published', 'in-prep': 'In preparation', ongoing: 'Ongoing',
@@ -20,12 +23,28 @@ const STATUS: Record<string, string> = {
     <h1>Research</h1>
     <p class="lede">
       I study the internal structure, chemical composition and evolution of galaxies,
-      using strong gravitational lensing as a natural telescope.
+      using strong gravitational lensing as a natural telescope — and, at CASSA, help
+      build the instrument that will take the next set of observations.
     </p>
+
+    {current.length > 0 && (
+      <section class="current">
+        <h2 class="section-label">Current work</h2>
+        <ul class="current__list">
+          {current.map((c) => (
+            <li>
+              <a href={`/research/${c.id}/`}>{c.data.title}</a>
+              {c.data.supervisor && <p class="meta">{c.data.supervisor}</p>}
+              {c.data.excerpt && <p class="current__note">{c.data.excerpt}</p>}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
 
     {papers.length > 0 && (
       <section aria-labelledby="pubs">
-        <h2 id="pubs">Publications</h2>
+        <h2 id="pubs" class="section-label">Publications</h2>
         <ul class="pub-list">
           {papers.map((p) => (
             <li>
@@ -49,7 +68,7 @@ const STATUS: Record<string, string> = {
     )}
 
     <section aria-labelledby="projects">
-      <h2 id="projects">Projects</h2>
+      <h2 id="projects" class="section-label">All projects</h2>
       <div class="grid grid--2">
         {all.map((e) => (
           <PostCard href={`/research/${e.id}/`} data={e.data} kind={STATUS[e.data.status] ?? e.data.status} />
@@ -61,6 +80,19 @@ const STATUS: Record<string, string> = {
 
 <style>
   .lede { font-size: var(--step-1); color: var(--text-muted); max-width: var(--measure); margin-block: var(--space-4) var(--space-8); }
+  .current { margin-block-end: var(--space-10); }
+  .current__list {
+    list-style: none; padding: 0;
+    display: grid; gap: var(--space-5);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  }
+  .current__list li {
+    padding-inline-start: var(--space-4);
+    border-inline-start: 2px solid var(--accent-2);
+  }
+  .current__list a { font-weight: 600; color: var(--text); text-decoration: none; }
+  .current__list a:hover { color: var(--accent); }
+  .current__note { color: var(--text-muted); font-size: var(--step--1); margin-block-start: var(--space-2); }
   section + section { margin-block-start: var(--space-10); }
   h2 { margin-block-end: var(--space-5); }
   .pub-list { list-style: none; padding: 0; display: grid; gap: var(--space-5); }

@@ -280,6 +280,37 @@ function tripFor(ts, body) {
   return TRIPS.find((t) => inWindow(ts, t) && t.match.test(body));
 }
 
+/**
+ * Photographs for the outreach entries.
+ *
+ * Same shape as TRIPS and for the same reason: a date window plus a required
+ * phrase, so a nearby unrelated post cannot be swept in. Unlike travel, these
+ * do not create entries — the outreach entries already exist, written from the
+ * CV. This only attaches images to them, keyed by `slug`.
+ *
+ * Three outreach entries deliberately get nothing:
+ *   ictp-pwf            — the export contains no ICTP/PWF post at all.
+ *   camsust-summer-school — only a promotional poster exists, not photographs
+ *                           of the school running.
+ *   diu / others         — see the table.
+ * Leaving those image-less is the honest outcome; substituting a vaguely
+ * related photograph would be worse than a page with no photograph.
+ */
+const OUTREACH = [
+  { slug: 'astrocode-intensive', from: '2024-03-15', to: '2024-03-22',
+    match: /astrocode/i },
+  { slug: 'diu-data-driven-astronomy', from: '2025-08-05', to: '2025-08-12',
+    match: /diu astrophysics|data-driven astronomy/i },
+  { slug: 'reaz-stargazing-night', from: '2025-01-25', to: '2025-01-30',
+    match: /star gazing|stargazing/i },
+  { slug: 'camsust', from: '2022-08-10', to: '2022-08-15',
+    match: /cam-sust|camsust|copernicus astronomical/i },
+];
+
+function outreachFor(ts, body) {
+  return OUTREACH.find((o) => inWindow(ts, o) && o.match.test(body));
+}
+
 const usedSlugs = new Set();
 
 /** `hint` lets albums borrow the romanised name Facebook already used for the
@@ -456,7 +487,6 @@ for (const c of unique.slice(0, LIMIT)) {
   const trip = tripFor(c.ts, c.body);
   const collection = trip ? 'travel' : 'writing';
   const maxImages = trip ? MAX_IMAGES : MAX_IMAGES_WRITING;
-  if (trip) tripPosts++;
 
   // A trip can span many posts — Chiang Mai is thirteen, serialised day_0 to
   // day_12 — so they cannot all just take the trip's name or they arrive as
@@ -473,6 +503,7 @@ for (const c of unique.slice(0, LIMIT)) {
   const dir = `src/content/${collection}`;
   const mdPath = `${dir}/${slug}.md`;
   if (existsSync(mdPath)) { skipped++; continue; }
+  if (trip) tripPosts++;
 
   // Cover first, then the rest as a gallery.
   let cover, coverCaption;
@@ -585,6 +616,64 @@ for (const a of albums) {
   console.log(`  album: ${a.name} -> ${mdPath} (${gallery.length} photos)`);
 }
 
+/* ------------------------------------------------- outreach photographs */
+
+/**
+ * Attach photographs to the outreach entries, which already exist and were
+ * written from the CV. This edits their frontmatter in place rather than
+ * creating anything, and never touches `draft:` — publishing stays the
+ * owner's decision.
+ */
+let outreachImaged = 0, outreachImages = 0;
+
+for (const c of unique) {
+  const ev = outreachFor(c.ts, c.body);
+  if (!ev || !c.photos.length) continue;
+
+  const mdPath = `src/content/outreach/${ev.slug}.md`;
+  if (!existsSync(mdPath)) { console.warn(`  ! no entry at ${mdPath}`); continue; }
+
+  const file = readFileSync(mdPath, 'utf8');
+  if (/^cover:/m.test(file)) continue;   // already has one; idempotent
+
+  const dir = 'src/content/outreach';
+  const written = [];
+  for (const [i, photo] of c.photos.slice(0, MAX_IMAGES).entries()) {
+    const src = findMedia(photo.uri);
+    if (!src) continue;
+    const name = i === 0 ? `${ev.slug}.webp` : `${ev.slug}-${i + 1}.webp`;
+    let ok = true;
+    if (!DRY_RUN) {
+      mkdirSync(`${dir}/images`, { recursive: true });
+      ok = await writeImage(src, `${dir}/images/${name}`);
+    }
+    if (ok) written.push({ name, credit: creditFrom(photo.description) });
+  }
+  if (!written.length) continue;
+
+  const [cover, ...rest] = written;
+  const block =
+    `cover: ./images/${cover.name}\n` +
+    `coverAlt: ${JSON.stringify(`Photograph from ${ev.slug.replace(/-/g, ' ')}`)}\n` +
+    (cover.credit ? `coverCaption: ${JSON.stringify(cover.credit)}\n` : '') +
+    (rest.length
+      ? 'gallery:\n' + rest.map((r) =>
+          `  - src: ./images/${r.name}\n    alt: ""\n` +
+          (r.credit ? `    credit: ${JSON.stringify(r.credit)}\n` : '')).join('')
+      : '');
+
+  if (!DRY_RUN) {
+    // Insert immediately before `excerpt:`, which every outreach entry has.
+    const out = file.includes('\nexcerpt:')
+      ? file.replace('\nexcerpt:', `\n${block.trimEnd()}\nexcerpt:`)
+      : file.replace(/\n---\n/, `\n${block.trimEnd()}\n---\n`);
+    writeFileSync(mdPath, out, 'utf8');
+  }
+  outreachImaged++;
+  outreachImages += written.length;
+  console.log(`  outreach: ${ev.slug} <- ${written.length} photo(s) from ${new Date(c.ts * 1000).toISOString().slice(0, 10)}`);
+}
+
 /* ------------------------------------------------------------- summary */
 
 const mb = (n) => (n / 1024 / 1024).toFixed(2) + ' MB';
@@ -592,6 +681,7 @@ console.log(`
 ${DRY_RUN ? 'DRY RUN — nothing was written.' : 'Done.'}
   writing drafts   ${written - tripPosts}   (${withCover} with a cover)
   trip posts       ${tripPosts}   (matched a known trip by date + phrase)
+  outreach imaged  ${outreachImaged}   (${outreachImages} photographs attached)
   travel drafts    ${albumsWritten}   (${galleryImages} gallery images)
   skipped          ${skipped}   (already existed)
   media            ${imgBefore ? `${mb(imgBefore)} -> ${mb(imgAfter)}` : 'none'}${imgSkipped ? `, ${imgSkipped} skipped` : ''}

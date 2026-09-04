@@ -6,6 +6,17 @@ org: Copernicus Astronomical Memorial of SUST
 role: President (9th EC); Study Circle Secretary (8th EC)
 eventDate: 2021-03-06
 lang: en
+cover: ./images/camsust.webp
+coverAlt: "Photograph from camsust"
+gallery:
+  - src: ./images/camsust-2.webp
+    alt: ""
+  - src: ./images/camsust-3.webp
+    alt: ""
+  - src: ./images/camsust-4.webp
+    alt: ""
+  - src: ./images/camsust-5.webp
+    alt: ""
 excerpt: Three years running a university astronomy society — study circles, stargazing nights, talks, a magazine, and a science roadshow.
 tags:
   - outreach

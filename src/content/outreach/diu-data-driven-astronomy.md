@@ -6,6 +6,17 @@ org: Daffodil International University Astrophysics Center
 role: Facilitator
 eventDate: 2025-07-27
 lang: en
+cover: ./images/diu-data-driven-astronomy.webp
+coverAlt: "Photograph from diu data driven astronomy"
+gallery:
+  - src: ./images/diu-data-driven-astronomy-2.webp
+    alt: ""
+  - src: ./images/diu-data-driven-astronomy-3.webp
+    alt: ""
+  - src: ./images/diu-data-driven-astronomy-4.webp
+    alt: ""
+  - src: ./images/diu-data-driven-astronomy-5.webp
+    alt: ""
 excerpt: A hands-on session on galaxy–galaxy strong lens modelling, for participants who finished with real results.
 tags: ["outreach", "workshop", "strong lensing"]
 draft: true

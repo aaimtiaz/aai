@@ -6,6 +6,17 @@ org: CAM-SUST, SUST campus
 role: Facilitator
 eventDate: 2024-03-08
 lang: en
+cover: ./images/astrocode-intensive.webp
+coverAlt: "Photograph from astrocode intensive"
+gallery:
+  - src: ./images/astrocode-intensive-2.webp
+    alt: ""
+  - src: ./images/astrocode-intensive-3.webp
+    alt: ""
+  - src: ./images/astrocode-intensive-4.webp
+    alt: ""
+  - src: ./images/astrocode-intensive-5.webp
+    alt: ""
 excerpt: Two days on astronomical image reduction, for students who had never touched real telescope data.
 tags: ["outreach", "workshop", "image reduction"]
 draft: true

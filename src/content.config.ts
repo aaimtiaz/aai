@@ -65,8 +65,17 @@ const travel = defineCollection({
       location: z
         .object({ name: z.string(), country: z.string().optional() })
         .optional(),
+      // `credit` exists because a gallery image previously had nowhere to
+      // carry a photographer's name — which is how four photographs by
+      // someone else shipped uncredited.
       gallery: z
-        .array(z.object({ src: image(), alt: z.string().default('') }))
+        .array(
+          z.object({
+            src: image(),
+            alt: z.string().default(''),
+            credit: z.string().optional(),
+          }),
+        )
         .default([]),
     }),
 });

@@ -6,6 +6,17 @@ org: Reaz Public School, Narayanganj
 role: Organiser
 eventDate: 2025-01-27
 lang: en
+cover: ./images/reaz-stargazing-night.webp
+coverAlt: "Photograph from reaz stargazing night"
+gallery:
+  - src: ./images/reaz-stargazing-night-2.webp
+    alt: ""
+  - src: ./images/reaz-stargazing-night-3.webp
+    alt: ""
+  - src: ./images/reaz-stargazing-night-4.webp
+    alt: ""
+  - src: ./images/reaz-stargazing-night-5.webp
+    alt: ""
 excerpt: Telescopes on the school grounds, and a lot of students seeing Jupiter for the first time.
 tags:
   - outreach
