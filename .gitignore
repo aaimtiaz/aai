@@ -17,3 +17,7 @@ facebook-export/
 .DS_Store
 Thumbs.db
 *.log
+
+# working notes — kept locally, not part of the published site
+REBUILD-PLAN.md
+NEXT-STEPS.md

@@ -28,6 +28,7 @@ for (const section of ['writing', 'travel', 'research', 'teaching', 'outreach', 
   }
 }
 import sitemap from '@astrojs/sitemap';
+import pruneOrphanAssets from './src/integrations/prune-orphan-assets.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -71,5 +72,8 @@ export default defineConfig({
         return when ? { ...item, lastmod: when } : item;
       },
     }),
+
+    // Must come after everything that emits images.
+    pruneOrphanAssets(),
   ],
 });
