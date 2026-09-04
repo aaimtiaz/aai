@@ -1,24 +1,17 @@
 ---
 import { Image } from 'astro:assets';
-import { getEntry, render } from 'astro:content';
+import { getEntry } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Starfield from '../components/Starfield.astro';
 import Icon from '../components/Icon.astro';
-import PostCard from '../components/PostCard.astro';
-import { site, profileLinks, PROFILE_LABELS, education, stats, awards } from '../data/site';
-import { getPublished, byDateDesc, displayDate } from '../lib/content';
+import Sections from '../components/Sections.astro';
+import { site, profileLinks, PROFILE_LABELS } from '../data/site';
 
 const home = await getEntry('pages', 'home');
-const { Content } = await render(home!);
-
-const research = (await getPublished('research')).sort(
-  (a, b) => (a.data.order ?? 0) - (b.data.order ?? 0),
-);
-const writing = (await getPublished('writing')).sort(byDateDesc);
-const travel = (await getPublished('travel')).sort(byDateDesc);
-
-const papers = research.filter((r) => r.data.publication?.doi);
-const featured = research.slice(0, 3);
+// Everything below the hero comes from the page's own layout array, so the
+// order of the sections is content rather than markup and can be changed
+// from the page itself.
+const layout = home!.data.layout ?? [];
 
 const ICONS: Record<string, 'orcid' | 'scholar' | 'github' | 'external'> = {
   orcid: 'orcid', scholar: 'scholar', github: 'github',
@@ -39,11 +32,15 @@ const ICONS: Record<string, 'orcid' | 'scholar' | 'github' | 'external'> = {
         />
       )}
       <div class="hero__text">
-        <h1>{site.name}</h1>
-        <p class="hero__role">{site.role}</p>
+        {/* The hero stays fixed at the top of the page rather than being a
+            movable section, but its words live in site.json and are editable
+            in place like everything else. */}
+        <h1 data-edit="site.json#site.name">{site.name}</h1>
+        <p class="hero__role" data-edit="site.json#site.role">{site.role}</p>
         <p class="hero__affil">
-          {site.affiliation.org}<br />
-          {site.affiliation.institution} · {site.affiliation.location}
+          <span data-edit="site.json#site.affiliation.org">{site.affiliation.org}</span><br />
+          <span data-edit="site.json#site.affiliation.institution">{site.affiliation.institution}</span>
+          · <span data-edit="site.json#site.affiliation.location">{site.affiliation.location}</span>
         </p>
         <div class="hero__actions">
           <a class="btn" href={`mailto:${site.email}`}><Icon name="mail" /> Email</a>
@@ -66,90 +63,7 @@ const ICONS: Record<string, 'orcid' | 'scholar' | 'github' | 'external'> = {
   </section>
 
   <div class="wrap">
-    <!-- Bio beside a sticky rail. The rail is what fills the width the
-         measure-capped bio used to leave empty. -->
-    <section class="split intro">
-      <div class="prose">
-        <Content />
-      </div>
-
-      <aside class="glance">
-        <h2 class="section-label">At a glance</h2>
-        <dl>
-          {education.map((e) => (
-            <>
-              <dt>{e.degree}</dt>
-              <dd>{e.institution} · {e.year} <span class="muted">({e.note})</span></dd>
-            </>
-          ))}
-          {papers.length > 0 && (
-            <>
-              <dt>Published</dt>
-              <dd>
-                {papers.map((p) => (
-                  <a href={`/research/${p.id}/`}>{p.data.publication?.venue}, {p.data.date.getFullYear()}</a>
-                ))}
-              </dd>
-            </>
-          )}
-          <dt>Recognition</dt>
-          <dd>{awards[0].title} <span class="muted">— {awards[0].year}</span></dd>
-          <dt>Currently</dt>
-          <dd>{research.filter((r) => r.data.status === 'ongoing').length} active projects at CASSA</dd>
-        </dl>
-      </aside>
-    </section>
-
-    <!-- Selected work, with the research figures. These images existed all
-         along and appeared on no homepage at all. -->
-    {featured.length > 0 && (
-      <section class="band">
-        <h2 class="section-label">Selected work</h2>
-        <div class="grid grid--3up">
-          {featured.map((r) => (
-            <PostCard href={`/research/${r.id}/`} data={r.data}
-                      kind={r.data.status === 'published' ? 'Published' : r.data.status === 'in-prep' ? 'In preparation' : 'Ongoing'} />
-          ))}
-        </div>
-        <p class="band__more"><a href="/research/">All research <Icon name="external" size={15} /></a></p>
-      </section>
-    )}
-
-    <!-- Figures that are traceable to the CV, not invented. -->
-    <section class="band full-bleed numbers">
-      <div class="wrap numbers__inner">
-        {stats.map((s) => (
-          <div class="numbers__item">
-            <span class="numbers__value">{s.value}</span>
-            <span class="numbers__label">{s.label}</span>
-          </div>
-        ))}
-      </div>
-    </section>
-
-    {writing.length > 0 && (
-      <section class="band">
-        <h2 class="section-label">Writing</h2>
-        <div class="grid grid--3up">
-          {writing.slice(0, 3).map((e) => (
-            <PostCard href={`/writing/${e.id}/`} data={e.data}
-                      kind={e.data.form === 'poem' ? 'Poem' : 'Prose'} />
-          ))}
-        </div>
-        <p class="band__more"><a href="/writing/">All writing <Icon name="external" size={15} /></a></p>
-      </section>
-    )}
-
-    {travel.length > 0 && (
-      <section class="band">
-        <h2 class="section-label">Travel</h2>
-        <div class="grid grid--3up">
-          {travel.slice(0, 3).map((e) => (
-            <PostCard href={`/travel/${e.id}/`} data={e.data} kind={e.data.location?.name} />
-          ))}
-        </div>
-      </section>
-    )}
+    <Sections sections={layout} file="pages/home.md" />
   </div>
 </Base>
 
@@ -195,60 +109,4 @@ const ICONS: Record<string, 'orcid' | 'scholar' | 'github' | 'external'> = {
   .hero__links a:hover { color: var(--accent); }
 
   /* ---- Bio + rail ---- */
-  .intro { margin-block-end: var(--space-12); }
-  .glance {
-    position: sticky; top: calc(60px + var(--space-5));
-    background: var(--surface-raised);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-5);
-    box-shadow: var(--shadow-sm);
-  }
-  .glance dl { margin: 0; display: grid; gap: var(--space-4); }
-  .glance dt {
-    font-size: var(--step--1); font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--text-muted);
-  }
-  .glance dd { margin: var(--space-1) 0 0; font-size: var(--step--1); line-height: 1.6; }
-  .glance dd a { display: block; }
-  .glance .muted { color: var(--text-muted); }
-  @media (max-width: 60rem) { .glance { position: static; } }
-
-  /* ---- Sections ---- */
-  .band { margin-block-end: var(--space-12); }
-  .band__more { margin-block-start: var(--space-5); }
-  .band__more a {
-    display: inline-flex; align-items: center; gap: var(--space-2);
-    font-size: var(--step--1); font-weight: 550; text-decoration: none;
-  }
-  .band__more a:hover { text-decoration: underline; }
-
-  /* Explicitly three across, then two, then one. The old `grid--2` resolved
-     to three tracks at desktop and stranded a fourth card beside 784px of
-     blank — the class name described neither the code nor the output. */
-  .grid--3up { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  @media (max-width: 60rem) { .grid--3up { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 38rem) { .grid--3up { grid-template-columns: minmax(0, 1fr); } }
-
-  /* ---- Numbers ---- */
-  .numbers {
-    background: var(--surface);
-    border-block: 1px solid var(--border);
-    padding-block: var(--space-8);
-  }
-  .numbers__inner {
-    display: grid;
-    gap: var(--space-6);
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
-  }
-  .numbers__item { display: flex; flex-direction: column; gap: var(--space-1); }
-  .numbers__value {
-    font-family: var(--font-display);
-    font-variation-settings: 'opsz' 60, 'SOFT' 20, 'WONK' 1;
-    font-size: var(--step-3);
-    color: var(--accent-2);
-    line-height: 1;
-  }
-  .numbers__label { font-size: var(--step--1); color: var(--text-muted); line-height: 1.5; }
 </style>

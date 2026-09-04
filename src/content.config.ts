@@ -163,13 +163,68 @@ const photography = defineCollection({
 });
 
 /** Standalone prose blocks (the home bio) kept as content, not markup. */
+/**
+ * Page composition, as data.
+ *
+ * The homepage rendered six sections and not one of them held its own text —
+ * every word already came from site.json or a collection. What was hardcoded
+ * was *which* sections existed and *in what order*, which is precisely the
+ * part that could not be edited. Moving that ordering into frontmatter is
+ * what makes a page reorderable without a server.
+ *
+ * A closed union rather than free-form blocks, on purpose: every section
+ * lands already styled and there are no colour, column or spacing knobs, so
+ * the editorial design cannot be edited away one late night at a time.
+ */
+const SECTION_KINDS = [
+  'hero', 'intro', 'prose', 'numbers', 'collection',
+  'entries', 'figure', 'gallery', 'links', 'map', 'rule',
+] as const;
+
+const section = ({ image }: { image: () => any }) =>
+  z.object({
+    type: z.enum(SECTION_KINDS),
+    /** Stable across reorders, so the editor can address one section. */
+    id: z.string().optional(),
+    /** Hidden sections stay in the file, so hiding one is reversible. */
+    hidden: z.boolean().default(false),
+
+    heading: z.string().optional(),
+    /** Markdown, for `prose` and the left half of `intro`. */
+    body: z.string().optional(),
+    /** `lede` sets the larger, muted opening paragraph. */
+    variant: z.enum(['body', 'lede']).default('body'),
+
+    /** `collection` and `entries`: which collection, and how many. */
+    source: z.enum(['writing', 'travel', 'research', 'teaching', 'outreach', 'photography']).optional(),
+    count: z.number().optional(),
+    href: z.string().optional(),
+    linkLabel: z.string().optional(),
+
+    /** `figure` and `gallery`. */
+    src: image().optional(),
+    alt: z.string().default(''),
+    caption: z.string().optional(),
+    credit: z.string().optional(),
+    images: z
+      .array(z.object({
+        src: image(),
+        alt: z.string().default(''),
+        caption: z.string().optional(),
+        credit: z.string().optional(),
+      }))
+      .default([]),
+  });
+
 const pages = defineCollection({
   loader: md('pages'),
-  schema: ({ image }) =>
+  schema: (ctx) =>
     z.object({
       title: z.string(),
       description: z.string().optional(),
-      ...cover(image),
+      ...cover(ctx.image),
+      /** Empty means the page renders the way it always did. */
+      layout: z.array(section(ctx)).default([]),
     }),
 });
 

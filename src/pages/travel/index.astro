@@ -1,5 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Sections from '../../components/Sections.astro';
+import { getEntry } from 'astro:content';
 import PostCard from '../../components/PostCard.astro';
 import TravelMap from '../../components/TravelMap.astro';
 import { getPublished, byDateDesc } from '../../lib/content';
@@ -28,16 +30,18 @@ const stats = [
   hiked > 0 && { value: `${hiked} km`, label: 'on foot' },
   { value: String(all.length), label: `trip${all.length === 1 ? '' : 's'} in ${countries.size} countr${countries.size === 1 ? 'y' : 'ies'}` },
 ].filter(Boolean) as { value: string; label: string }[];
+
+const page = await getEntry('pages', 'travel');
+const layout = page!.data.layout ?? [];
 ---
 <Base
   title="Travel"
   description="Where I have been — mountains, islands, tea gardens and a lot of kilometres by bicycle, mapped."
 >
   <div class="wrap">
-    <h1>Travel</h1>
-    <p class="lede">
-      Mostly toward mountains and green places, often by bicycle, usually with a camera.
-    </p>
+    <h1 data-edit="pages/travel.md#title">Travel</h1>
+    <Sections sections={layout} file="pages/travel.md">
+      <Fragment slot="entries">
 
     {all.length === 0 ? (
       <p class="empty-state">No travel posts published yet.</p>
@@ -73,6 +77,8 @@ const stats = [
         </div>
       </>
     )}
+      </Fragment>
+    </Sections>
   </div>
 </Base>
 

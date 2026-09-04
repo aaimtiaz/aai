@@ -40,5 +40,21 @@ const updated = await siteUpdatedAt();
       <slot />
     </main>
     <Footer updated={updated} />
+
+    {/* The in-page editor, for the owner only. This costs a visitor the token
+        check and nothing else: the editor is a separate chunk that a dynamic
+        import only fetches when there is a token to justify it. */}
+    {!head.noindex && (
+      <script>
+        // The key is read inline rather than through github.ts, so a visitor
+        // without a token fetches no module at all — importing the helper to
+        // ask whether to import anything would download it for everyone.
+        let token = null;
+        try {
+          token = sessionStorage.getItem('admin_gh_token') ?? localStorage.getItem('admin_gh_token');
+        } catch {}
+        if (token) import('../scripts/editor/index');
+      </script>
+    )}
   </body>
 </html>

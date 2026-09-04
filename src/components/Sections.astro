@@ -1,0 +1,252 @@
+---
+/**
+ * Renders a page's `layout` array.
+ *
+ * One component rather than a folder of tiny ones, because the section styles
+ * belong together: what makes this a curated palette instead of a page builder
+ * is that every kind lands already styled, and keeping the rules side by side
+ * is what stops them drifting apart.
+ *
+ * Page-specific machinery — the travel map, writing's language filters, the
+ * photography series grid — stays in its own page and arrives here through a
+ * named slot. The layout array decides *where* it sits; the page still decides
+ * what it is. That way a section can be reordered without its markup having to
+ * become generic first.
+ */
+import { Image } from 'astro:assets';
+import { marked } from 'marked';
+import PostCard from './PostCard.astro';
+import Icon from './Icon.astro';
+import { education, stats, awards, profileLinks, PROFILE_LABELS } from '../data/site';
+import { getPublished, byDateDesc } from '../lib/content';
+
+interface Section {
+  type: string;
+  id?: string;
+  hidden: boolean;
+  heading?: string;
+  body?: string;
+  variant: 'body' | 'lede';
+  source?: string;
+  count?: number;
+  href?: string;
+  linkLabel?: string;
+  src?: any;
+  alt: string;
+  caption?: string;
+  credit?: string;
+  images: { src: any; alt: string; caption?: string; credit?: string }[];
+}
+
+interface Props {
+  sections: Section[];
+  /** The page file these sections came from, e.g. "pages/home.md". Written
+   *  into each section so the editor knows what it is changing. */
+  file: string;
+}
+
+const { sections, file } = Astro.props;
+const visible = sections.filter((s) => !s.hidden);
+
+/* Collections the `collection` sections need, fetched once. */
+const NEEDED = [...new Set(visible.filter((s) => s.type === 'collection').map((s) => s.source))];
+const entriesBySource: Record<string, any[]> = {};
+for (const name of NEEDED) {
+  if (!name) continue;
+  const all: any[] = await getPublished(name as any);
+  entriesBySource[name] =
+    name === 'research'
+      ? all.sort((a, b) => (a.data.order ?? 0) - (b.data.order ?? 0))
+      : all.sort(byDateDesc);
+}
+
+/** The small label a card carries, which differs per collection. */
+function kindOf(source: string, data: any): string | undefined {
+  if (source === 'research') {
+    return data.status === 'published' ? 'Published'
+      : data.status === 'in-prep' ? 'In preparation' : 'Ongoing';
+  }
+  if (source === 'writing') return data.form === 'poem' ? 'Poem' : 'Prose';
+  if (source === 'travel') return data.location?.name;
+  return undefined;
+}
+
+const research = await getPublished('research');
+const papers = research.filter((r: any) => r.data.publication?.doi);
+const ongoing = research.filter((r: any) => r.data.status === 'ongoing').length;
+
+/** Markdown for a prose section. Trusted input: it comes from the repository,
+ *  written by the site's own owner through an authenticated editor. */
+const html = (md?: string) => (md ? marked.parse(md, { async: false }) as string : '');
+
+/** Address of one editable value, read by the in-page editor. */
+const at = (i: number, field: string) => `${file}#layout.${i}.${field}`;
+---
+{visible.map((s, i) => (
+  <>
+    {s.type === 'prose' && (
+      <section class="band" data-section={s.type} data-section-index={i} data-section-file={file}>
+        {s.heading && <h2 class="section-label" data-edit={at(i, 'heading')}>{s.heading}</h2>}
+        <div class={`prose ${s.variant === 'lede' ? 'prose--lede' : ''}`}
+             data-edit={at(i, 'body')} data-edit-kind="markdown" set:html={html(s.body)} />
+      </section>
+    )}
+
+    {s.type === 'intro' && (
+      <section class="split intro" data-section={s.type} data-section-index={i} data-section-file={file}>
+        <div class="prose" data-edit={at(i, 'body')} data-edit-kind="markdown" set:html={html(s.body)} />
+        <aside class="glance">
+          <h2 class="section-label" data-edit={at(i, 'heading')}>{s.heading ?? 'At a glance'}</h2>
+          <dl>
+            {education.map((e) => (
+              <>
+                <dt>{e.degree}</dt>
+                <dd>{e.institution} · {e.year} {e.note && <span class="muted">({e.note})</span>}</dd>
+              </>
+            ))}
+            {papers.length > 0 && (
+              <>
+                <dt>Published</dt>
+                <dd>
+                  {papers.map((p: any) => (
+                    <a href={`/research/${p.id}/`}>{p.data.publication?.venue}, {p.data.date.getFullYear()}</a>
+                  ))}
+                </dd>
+              </>
+            )}
+            {awards.length > 0 && (
+              <>
+                <dt>Recognition</dt>
+                <dd>{awards[0].title} <span class="muted">— {awards[0].year}</span></dd>
+              </>
+            )}
+            <dt>Currently</dt>
+            <dd>{ongoing} active projects at CASSA</dd>
+          </dl>
+        </aside>
+      </section>
+    )}
+
+    {s.type === 'numbers' && stats.length > 0 && (
+      <section class="band full-bleed numbers" data-section={s.type} data-section-index={i} data-section-file={file}>
+        <div class="wrap numbers__inner">
+          {stats.map((n) => (
+            <div class="numbers__item">
+              <span class="numbers__value">{n.value}</span>
+              <span class="numbers__label">{n.label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {s.type === 'collection' && s.source && (entriesBySource[s.source] ?? []).length > 0 && (
+      <section class="band" data-section={s.type} data-section-index={i} data-section-file={file}>
+        {s.heading && <h2 class="section-label" data-edit={at(i, 'heading')}>{s.heading}</h2>}
+        <div class="grid grid--3up">
+          {entriesBySource[s.source].slice(0, s.count ?? 3).map((e: any) => (
+            <PostCard href={`/${s.source}/${e.id}/`} data={e.data} kind={kindOf(s.source!, e.data)} />
+          ))}
+        </div>
+        {s.href && (
+          <p class="band__more">
+            <a href={s.href} data-edit={at(i, 'linkLabel')}>
+              {s.linkLabel ?? 'See all'} <Icon name="external" size={15} />
+            </a>
+          </p>
+        )}
+      </section>
+    )}
+
+    {s.type === 'figure' && s.src && (
+      <figure class="band section-figure" data-section={s.type} data-section-index={i} data-section-file={file}>
+        <Image src={s.src} alt={s.alt} width={1100} height={700} />
+        {(s.caption || s.credit) && (
+          <figcaption>
+            <span data-edit={at(i, 'caption')}>{s.caption}</span>
+            {s.caption && s.credit ? ' · ' : ''}
+            {s.credit}
+          </figcaption>
+        )}
+      </figure>
+    )}
+
+    {s.type === 'gallery' && s.images.length > 0 && (
+      <section class="band" data-section={s.type} data-section-index={i} data-section-file={file}>
+        {s.heading && <h2 class="section-label" data-edit={at(i, 'heading')}>{s.heading}</h2>}
+        <div class="gallery">
+          {s.images.map((g) => (
+            <figure class="gallery__item">
+              <Image src={g.src} alt={g.alt} width={700} height={500} loading="lazy" />
+              {(g.caption || g.credit) && (
+                <figcaption class="gallery__credit">
+                  {g.caption}{g.caption && g.credit ? ' · ' : ''}{g.credit}
+                </figcaption>
+              )}
+            </figure>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {s.type === 'links' && profileLinks.length > 0 && (
+      <section class="band" data-section={s.type} data-section-index={i} data-section-file={file}>
+        {s.heading && <h2 class="section-label" data-edit={at(i, 'heading')}>{s.heading}</h2>}
+        <ul class="tag-list">
+          {profileLinks.map((p) => (
+            <li><a href={p.url} rel="me noopener" target="_blank">{PROFILE_LABELS[p.key] ?? p.key}</a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {s.type === 'rule' && <hr class="section-rule" data-section={s.type} data-section-index={i} data-section-file={file} />}
+
+    {/* The page's own listing and machinery, positioned by the layout array. */}
+    {s.type === 'entries' && (
+      <div data-section={s.type} data-section-index={i} data-section-file={file}><slot name="entries" /></div>
+    )}
+    {s.type === 'map' && (
+      <div data-section={s.type} data-section-index={i} data-section-file={file}><slot name="map" /></div>
+    )}
+  </>
+))}
+
+<style>
+  /* .band, .band__more, .intro, .glance, .numbers and .grid--3up are global:
+     they are shared with index.astro, which still renders the hero. */
+
+  .prose--lede :global(p) {
+    font-size: var(--step-1);
+    color: var(--text-muted);
+    text-align: left;
+    hyphens: none;
+  }
+
+  .section-figure { margin: 0 0 var(--space-10); }
+  .section-figure :global(img) { width: 100%; border-radius: var(--radius-lg); }
+  .section-figure figcaption {
+    margin-block-start: var(--space-3);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .gallery {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  }
+  .gallery__item { margin: 0; }
+  .gallery__item :global(img) { width: 100%; border-radius: var(--radius-md); }
+  .gallery__credit {
+    margin-block-start: var(--space-2);
+    font-size: var(--step--2);
+    color: var(--text-muted);
+  }
+
+  .section-rule {
+    border: 0;
+    border-block-start: 1px solid var(--border);
+    margin-block: var(--space-9);
+  }
+</style>

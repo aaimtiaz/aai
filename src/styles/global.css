@@ -407,3 +407,69 @@ main { padding-block: var(--space-8); }
 .theme-toggle .theme-icon.theme-icon--sun { display: none; }
 .theme-toggle[aria-pressed='true'] .theme-icon.theme-icon--moon { display: none; }
 .theme-toggle[aria-pressed='true'] .theme-icon.theme-icon--sun { display: inline-block; }
+
+/* ==========================================================================
+   Page sections
+   --------------------------------------------------------------------------
+   Shared between index.astro (which still owns the hero) and Sections.astro,
+   which renders everything below it from the page's `layout` array. Scoped
+   styles cannot cross that boundary — a component's <style> only reaches
+   elements it rendered itself — so these live here rather than being copied
+   into both and drifting apart.
+   ========================================================================== */
+.intro { margin-block-end: var(--space-12); }
+.glance {
+  position: sticky; top: calc(60px + var(--space-5));
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+.glance dl { margin: 0; display: grid; gap: var(--space-4); }
+.glance dt {
+  font-size: var(--step--1); font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+.glance dd { margin: var(--space-1) 0 0; font-size: var(--step--1); line-height: 1.6; }
+.glance dd a { display: block; }
+.glance .muted { color: var(--text-muted); }
+@media (max-width: 60rem) { .glance { position: static; } }
+
+/* ---- Sections ---- */
+.band { margin-block-end: var(--space-12); }
+.band__more { margin-block-start: var(--space-5); }
+.band__more a {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  font-size: var(--step--1); font-weight: 550; text-decoration: none;
+}
+.band__more a:hover { text-decoration: underline; }
+
+/* Explicitly three across, then two, then one. The old `grid--2` resolved
+   to three tracks at desktop and stranded a fourth card beside 784px of
+   blank — the class name described neither the code nor the output. */
+.grid--3up { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 60rem) { .grid--3up { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 38rem) { .grid--3up { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---- Numbers ---- */
+.numbers {
+  background: var(--surface);
+  border-block: 1px solid var(--border);
+  padding-block: var(--space-8);
+}
+.numbers__inner {
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}
+.numbers__item { display: flex; flex-direction: column; gap: var(--space-1); }
+.numbers__value {
+  font-family: var(--font-display);
+  font-variation-settings: 'opsz' 60, 'SOFT' 20, 'WONK' 1;
+  font-size: var(--step-3);
+  color: var(--accent-2);
+  line-height: 1;
+}
+.numbers__label { font-size: var(--step--1); color: var(--text-muted); line-height: 1.5; }

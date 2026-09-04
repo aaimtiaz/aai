@@ -1,5 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Sections from '../../components/Sections.astro';
+import { getEntry } from 'astro:content';
 import PostCard from '../../components/PostCard.astro';
 import { getPublished } from '../../lib/content';
 
@@ -14,18 +16,18 @@ const current = all.filter((e) => e.data.status === 'ongoing');
 const STATUS: Record<string, string> = {
   published: 'Published', 'in-prep': 'In preparation', ongoing: 'Ongoing',
 };
+
+const page = await getEntry('pages', 'research');
+const layout = page!.data.layout ?? [];
 ---
 <Base
   title="Research"
   description="Publications and current projects on galaxy evolution, strong gravitational lensing, and resolved stellar populations."
 >
   <div class="wrap">
-    <h1>Research</h1>
-    <p class="lede">
-      I study the internal structure, chemical composition and evolution of galaxies,
-      using strong gravitational lensing as a natural telescope — and, at CASSA, help
-      build the instrument that will take the next set of observations.
-    </p>
+    <h1 data-edit="pages/research.md#title">Research</h1>
+    <Sections sections={layout} file="pages/research.md">
+      <Fragment slot="entries">
 
     {current.length > 0 && (
       <section class="current">
@@ -75,6 +77,8 @@ const STATUS: Record<string, string> = {
         ))}
       </div>
     </section>
+      </Fragment>
+    </Sections>
   </div>
 </Base>
 

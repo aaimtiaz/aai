@@ -1,18 +1,24 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Sections from '../../components/Sections.astro';
+import { getEntry } from 'astro:content';
 import PostCard from '../../components/PostCard.astro';
 import { getPublished, byDateDesc } from '../../lib/content';
 
 const all = (await getPublished('writing')).sort(byDateDesc);
 const KIND: Record<string, string> = { poem: 'Poem', prose: 'Prose' };
+
+const page = await getEntry('pages', 'writing');
+const layout = page!.data.layout ?? [];
 ---
 <Base
   title="Writing"
   description="Poetry and prose in English and Bengali by Ahmad Al-Imtiaz."
 >
   <div class="wrap">
-    <h1>Writing</h1>
-    <p class="lede">Poetry and prose, in English and বাংলা.</p>
+    <h1 data-edit="pages/writing.md#title">Writing</h1>
+    <Sections sections={layout} file="pages/writing.md">
+      <Fragment slot="entries">
 
     {all.length === 0 ? (
       <p class="empty-state">Nothing published yet.</p>
@@ -30,6 +36,8 @@ const KIND: Record<string, string> = { poem: 'Poem', prose: 'Prose' };
         </div>
       </>
     )}
+      </Fragment>
+    </Sections>
   </div>
 </Base>
 

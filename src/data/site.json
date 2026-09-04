@@ -1,0 +1,75 @@
+{
+  "site": {
+    "name": "Ahmad Al-Imtiaz",
+    "role": "Graduate Research Assistant",
+    "description": "Ahmad Al-Imtiaz — Graduate Research Assistant at CASSA, Independent University, Bangladesh. Galaxy evolution and strong gravitational lensing with JWST, HST and Keck data.",
+    "email": "ahmadal.imtiaz@gmail.com",
+    "affiliation": {
+      "role": "Graduate Research Assistant",
+      "org": "Center for Astronomy, Space Science and Astrophysics (CASSA)",
+      "institution": "Independent University, Bangladesh",
+      "location": "Dhaka, Bangladesh"
+    },
+    "profiles": {
+      "orcid": "https://orcid.org/0009-0008-9598-3439",
+      "scholar": "https://scholar.google.com/citations?user=EnTN0hMAAAAJ&hl=en",
+      "ads": "",
+      "github": "https://github.com/aaimtiaz",
+      "arxiv": ""
+    },
+    "cv": "/cv/ahmad-al-imtiaz-cv.pdf",
+    "analyticsId": "G-P6X673H4S7"
+  },
+
+  "education": [
+    {
+      "degree": "M.Sc. in Physics",
+      "institution": "Shahjalal University of Science and Technology",
+      "year": "2024",
+      "note": "CGPA 3.56 / 4"
+    },
+    {
+      "degree": "B.Sc. in Physics",
+      "institution": "Shahjalal University of Science and Technology",
+      "year": "2022",
+      "note": "CGPA 3.28 / 4"
+    }
+  ],
+
+  "stats": [
+    { "value": "2,300+", "label": "students reached through outreach" },
+    { "value": "6 years", "label": "of astronomy outreach" },
+    { "value": "11", "label": "schools and workshops" },
+    { "value": "3", "label": "telescopes operated" }
+  ],
+
+  "awards": [
+    {
+      "title": "Best Presenter Award",
+      "detail": "International Conference on Physics 2026, Bangladesh Physical Society — for AGEL0014",
+      "year": "2026"
+    },
+    {
+      "title": "15th globally, International Theoretical Physics Olympiad",
+      "detail": "Team Bosons, SUST",
+      "year": "2019"
+    },
+    { "title": "Winner, University Physics Olympiad", "detail": "SUST", "year": "2019" },
+    {
+      "title": "Hackathon winner, ASTRO101 workshop",
+      "detail": "NARIT, Chiang Mai, Thailand",
+      "year": "2023"
+    }
+  ],
+
+  "telescopes": [
+    "Celestron CGEM II 800 SCT 8\" on a CGEM II computerised equatorial mount",
+    "EvoStar 80ED Apo refractor on a Meade LX85 computerised equatorial mount",
+    "Sky-Watcher Explorer-200P on an EQ6-R Pro computerised equatorial mount"
+  ],
+
+  "tools": {
+    "research": ["Lenstronomy", "Dense Basis", "alf", "photutils", "STARRED", "TOPCAT", "ds9", "APT", "DRAGONS", "JWST pipelines"],
+    "languages": ["Python", "C", "MATLAB", "Mathematica"]
+  }
+}

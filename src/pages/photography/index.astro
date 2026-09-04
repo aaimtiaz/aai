@@ -1,5 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Sections from '../../components/Sections.astro';
+import { getEntry } from 'astro:content';
 import PostCard from '../../components/PostCard.astro';
 import { getPublished, byDateDesc } from '../../lib/content';
 
@@ -13,17 +15,18 @@ for (const e of all) {
   (series.get(key) as any).push(e);
 }
 const frames = all.reduce((n, e) => n + 1 + e.data.gallery.length, 0);
+
+const page = await getEntry('pages', 'photography');
+const layout = page!.data.layout ?? [];
 ---
 <Base
   title="Photography"
   description="Photographs from the road — night skies, river mornings, and a lot of kilometres by bicycle."
 >
   <div class="wrap">
-    <h1>Photography</h1>
-    <p class="lede">
-      Why do people take photographs? Maybe it is the quiet fear that the moment
-      may never return.
-    </p>
+    <h1 data-edit="pages/photography.md#title">Photography</h1>
+    <Sections sections={layout} file="pages/photography.md">
+      <Fragment slot="entries">
 
     {all.length === 0 ? (
       <p class="empty-state">Nothing published here yet.</p>
@@ -43,6 +46,8 @@ const frames = all.reduce((n, e) => n + 1 + e.data.gallery.length, 0);
         ))}
       </>
     )}
+      </Fragment>
+    </Sections>
   </div>
 </Base>
 

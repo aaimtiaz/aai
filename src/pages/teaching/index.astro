@@ -1,13 +1,20 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Sections from '../../components/Sections.astro';
+import { getEntry } from 'astro:content';
 import { getPublished } from '../../lib/content';
 import { render } from 'astro:content';
 const all = (await getPublished('teaching')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 const rendered = await Promise.all(all.map(async (e) => ({ e, ...(await render(e)) })));
+
+const page = await getEntry('pages', 'teaching');
+const layout = page!.data.layout ?? [];
 ---
 <Base title="Teaching" description="Teaching experience, courses and materials.">
   <div class="wrap">
-    <h1>Teaching</h1>
+    <h1 data-edit="pages/teaching.md#title">Teaching</h1>
+    <Sections sections={layout} file="pages/teaching.md">
+      <Fragment slot="entries">
     {all.length === 0 ? (
       <p class="empty-state">Teaching experience and materials are being written up.</p>
     ) : (
@@ -25,6 +32,8 @@ const rendered = await Promise.all(all.map(async (e) => ({ e, ...(await render(e
         ))}
       </ol>
     )}
+      </Fragment>
+    </Sections>
   </div>
 </Base>
 <style>
