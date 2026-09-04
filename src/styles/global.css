@@ -143,6 +143,50 @@ a:hover { color: var(--accent-hover); }
 .prose h3 { margin-block-start: var(--space-6); }
 .stack > * + * { margin-block-start: var(--space-4); }
 
+/* Images placed inside the body, between paragraphs.
+   --------------------------------------------------------------------------
+   Astro's markdown puts a lone image in its own <p>, and an image followed by
+   an emphasised line lands in that SAME <p>:
+
+       <p><img src="..."> <em>the caption</em></p>
+
+   which is exactly enough structure to style a captioned figure without
+   swapping the markdown processor for one that emits <figure>. Satteri has no
+   rehype hook, and the remark processor that does is the dependency that
+   breaks this build, so the caption is styled rather than restructured.
+
+   The selector list mirrors the justified-prose trio above and adds :has(),
+   because a bare `.prose p:has(> img)` (0,1,2) still loses to
+   `.writing__body.is-prose p` (0,2,1) and the caption would set justified. */
+.prose p:has(> img),
+.writing__body.is-prose p:has(> img),
+.travel__body p:has(> img) {
+  text-align: left;
+  hyphens: none;
+  -webkit-hyphens: none;
+  margin-block: var(--space-7);
+}
+
+.prose p > img,
+.writing__body p > img,
+.travel__body p > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+}
+
+.prose p > img + em,
+.writing__body p > img + em,
+.travel__body p > img + em {
+  display: block;
+  margin-block-start: var(--space-3);
+  font-style: normal;
+  font-size: var(--step--1);
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
 /* Escapes the wrapper to the full viewport width. Nothing on the site could
    do this before, which is why every page read as one narrow column.
 

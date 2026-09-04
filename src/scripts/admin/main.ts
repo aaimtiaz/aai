@@ -3,7 +3,11 @@ import {
   commitFiles, listContent, readFile, type FileWrite,
 } from './github';
 import { buildMarkdown, splitMarkdown, slugify, detectLang, guessForm } from './frontmatter';
-import { resizeImage, formatBytes } from './image';
+import {
+  getImages, loadFromPost, addFiles, find as findImage, remove as removeImage,
+  move as moveImage, setCover, buildSave, reset as resetImages,
+  bodySnippet, replaceInBody, bodyHasImage, allPaths,
+} from './images';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -16,9 +20,6 @@ type Collection = 'writing' | 'travel' | 'photography' | 'outreach' | 'teaching'
 
 /** Which file is being edited. null means a new post. */
 let editingPath: string | null = null;
-/** The cover already on an edited post, kept when no new image is chosen. */
-let existingCover: string | null = null;
-let pendingImage: Awaited<ReturnType<typeof resizeImage>> | null = null;
 let inventory: { path: string; sha: string }[] = [];
 /** Branch head SHA: the cache generation for everything derived from it. */
 let headSha = '';
@@ -187,20 +188,180 @@ $('body').addEventListener('input', () => {
   scheduleAutosave();
 });
 
-$('image').addEventListener('change', async () => {
-  const file = $<HTMLInputElement>('image').files?.[0];
-  if (!file) return;
+/* ------------------------------------------------------------------ images */
+
+const PLACEMENT_LABEL = { cover: 'Cover', body: 'In the text', gallery: 'Gallery' } as const;
+const bodyEl = () => $<HTMLTextAreaElement>('body');
+
+const picker = $<HTMLInputElement>('image');
+picker.addEventListener('change', async () => {
+  const files = picker.files;
+  if (!files?.length) return;
   const info = $('image-info');
-  info.textContent = 'Resizing...';
-  try {
-    pendingImage = await resizeImage(file);
-    info.textContent =
-      `${formatBytes(pendingImage.beforeBytes)} -> ${formatBytes(pendingImage.afterBytes)} ` +
-      `(${pendingImage.width}x${pendingImage.height}, WebP)`;
-  } catch (e) {
-    pendingImage = null;
-    info.textContent = `Could not read that image: ${(e as Error).message}`;
+  info.textContent = files.length === 1 ? 'Resizing…' : `Resizing ${files.length} images…`;
+  info.textContent = await addFiles(files);
+  // Clearing lets the same file be picked again after a removal.
+  picker.value = '';
+  renderImages();
+  scheduleAutosave();
+});
+
+function imgField(field: string, placeholder: string, value: string): HTMLInputElement {
+  const el = document.createElement('input');
+  el.type = 'text';
+  el.dataset.field = field;
+  el.placeholder = placeholder;
+  el.value = value;
+  return el;
+}
+
+function imgButton(act: string, label: string, disabled = false): HTMLButtonElement {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.dataset.act = act;
+  b.textContent = label;
+  b.disabled = disabled;
+  return b;
+}
+
+function renderImages() {
+  const list = $('image-list');
+  const imgs = getImages();
+  $('image-empty').hidden = imgs.length > 0;
+
+  const frag = document.createDocumentFragment();
+  imgs.forEach((img, i) => {
+    const li = document.createElement('li');
+    li.dataset.id = img.id;
+    li.dataset.placement = img.placement;
+
+    const thumb = document.createElement('img');
+    thumb.className = 'imglist__thumb';
+    thumb.src = img.url;
+    thumb.alt = '';
+    thumb.loading = 'lazy';
+    // A referenced file that is missing from the repo should say so rather
+    // than leaving a broken-image glyph with no explanation.
+    thumb.addEventListener('error', () => { thumb.replaceWith(missingThumb()); }, { once: true });
+    li.append(thumb);
+
+    const main = document.createElement('div');
+    main.className = 'imglist__main';
+
+    const where = document.createElement('div');
+    where.className = 'imglist__where';
+    const badge = document.createElement('span');
+    badge.className = 'imglist__badge';
+    badge.textContent = PLACEMENT_LABEL[img.placement];
+    where.append(badge);
+    const note = document.createElement('span');
+    note.textContent = img.info ?? img.name;
+    where.append(note);
+    main.append(where);
+
+    main.append(imgField('alt', 'What the picture shows — read aloud to blind readers', img.alt));
+    main.append(imgField('caption', 'Caption, shown under the picture', img.caption));
+    main.append(imgField('credit', 'Credit — the photographer, if it is not you', img.credit));
+
+    const acts = document.createElement('div');
+    acts.className = 'imglist__actions';
+    acts.append(imgButton('up', '↑', i === 0));
+    acts.append(imgButton('down', '↓', i === imgs.length - 1));
+    if (img.placement !== 'cover') acts.append(imgButton('cover', 'Make cover'));
+    if (img.placement !== 'body') acts.append(imgButton('insert', 'Put in the text'));
+    if (img.placement !== 'gallery') acts.append(imgButton('gallery', 'Move to gallery'));
+    acts.append(imgButton('remove', 'Remove'));
+    main.append(acts);
+
+    li.append(main);
+    frag.append(li);
+  });
+
+  list.replaceChildren(frag);
+}
+
+function missingThumb(): HTMLElement {
+  const el = document.createElement('span');
+  el.className = 'imglist__thumb';
+  el.textContent = '?';
+  el.title = 'This file is not in the repository';
+  return el;
+}
+
+/** Keep a body image's Markdown in step with its alt and caption fields. */
+function syncBodyImage(id: string) {
+  const img = findImage(id);
+  if (!img || img.placement !== 'body') return;
+  const ta = bodyEl();
+  if (!bodyHasImage(ta.value, img.name)) return;
+  ta.value = replaceInBody(ta.value, img.name, bodySnippet(img));
+}
+
+/** Drop the image's Markdown out of the body, for a placement change. */
+function pullFromBody(id: string) {
+  const img = findImage(id);
+  if (!img) return;
+  const ta = bodyEl();
+  ta.value = replaceInBody(ta.value, img.name, null).trim();
+}
+
+/** Place the image at the cursor, so text and pictures can alternate. */
+function insertIntoBody(id: string) {
+  const img = findImage(id);
+  if (!img) return;
+  const ta = bodyEl();
+  if (bodyHasImage(ta.value, img.name)) {
+    ta.value = replaceInBody(ta.value, img.name, bodySnippet(img));
+  } else {
+    const at = ta.selectionStart ?? ta.value.length;
+    const before = ta.value.slice(0, at).replace(/\s+$/, '');
+    const after = ta.value.slice(at).replace(/^\s+/, '');
+    const snippet = bodySnippet(img);
+    ta.value = [before, snippet, after].filter(Boolean).join('\n\n');
+    const caret = (before ? before.length + 2 : 0) + snippet.length;
+    ta.focus();
+    ta.setSelectionRange(caret, caret);
   }
+  img.placement = 'body';
+}
+
+$('image-list').addEventListener('input', (e) => {
+  const t = e.target as HTMLInputElement;
+  const li = t.closest('li');
+  const field = t.dataset.field;
+  if (!li || !field) return;
+  const img = findImage(li.dataset.id!);
+  if (!img) return;
+  (img as any)[field] = t.value;
+  if (field !== 'credit') syncBodyImage(img.id);
+  scheduleAutosave();
+});
+
+$('image-list').addEventListener('click', (e) => {
+  const btn = (e.target as HTMLElement).closest('button');
+  const li = btn?.closest('li');
+  if (!btn || !li) return;
+  const id = li.dataset.id!;
+  const img = findImage(id);
+  if (!img) return;
+
+  switch (btn.dataset.act) {
+    case 'up':     moveImage(id, -1); break;
+    case 'down':   moveImage(id, 1); break;
+    case 'cover':  pullFromBody(id); setCover(id); break;
+    case 'insert': insertIntoBody(id); break;
+    case 'gallery': pullFromBody(id); img.placement = 'gallery'; break;
+    case 'remove': {
+      const label = img.caption || img.alt || img.name;
+      if (!confirm(`Remove ${label}? The file is deleted from the repository when you save.`)) return;
+      pullFromBody(id);
+      removeImage(id);
+      break;
+    }
+    default: return;
+  }
+  renderImages();
+  scheduleAutosave();
 });
 
 /* --------------------------------------------------------------- autosave */
@@ -245,7 +406,6 @@ function readForm() {
     date: $<HTMLInputElement>('date').value,
     dateNote: $<HTMLInputElement>('dateNote').value.trim(),
     location: $<HTMLInputElement>('location').value.trim(),
-    coverCaption: $<HTMLInputElement>('coverCaption').value.trim(),
     excerpt: $<HTMLInputElement>('excerpt').value.trim(),
     tags: $<HTMLInputElement>('tags').value.trim(),
     body: $<HTMLTextAreaElement>('body').value,
@@ -262,7 +422,6 @@ function writeForm(d: Partial<ReturnType<typeof readForm>>) {
   $<HTMLInputElement>('date').value = d.date ?? new Date().toISOString().slice(0, 10);
   $<HTMLInputElement>('dateNote').value = d.dateNote ?? '';
   $<HTMLInputElement>('location').value = d.location ?? '';
-  $<HTMLInputElement>('coverCaption').value = d.coverCaption ?? '';
   $<HTMLInputElement>('excerpt').value = d.excerpt ?? '';
   $<HTMLInputElement>('tags').value = d.tags ?? '';
   $<HTMLTextAreaElement>('body').value = d.body ?? '';
@@ -272,13 +431,13 @@ function writeForm(d: Partial<ReturnType<typeof readForm>>) {
 
 function resetForm() {
   editingPath = null;
-  existingCover = null;
-  pendingImage = null;
   slugTouched = false;
+  resetImages();
+  renderImages();
   writeForm({ date: new Date().toISOString().slice(0, 10) });
   $('editor-title').textContent = 'New post';
   $('delete-btn').hidden = true;
-  $('image-info').textContent = 'Resized automatically before upload — pick the full-size photo.';
+  $('image-info').textContent = 'Pick as many as you like at once.';
   setStatus(statusEl, '', '');
 }
 
@@ -302,17 +461,13 @@ async function save(draft: boolean) {
   buttons.forEach((b) => (b.disabled = true));
 
   try {
-    const files: FileWrite[] = [];
-    let cover = existingCover;
-
-    if (pendingImage) {
-      cover = `./images/${slug}.${pendingImage.ext}`;
-      files.push({
-        path: `${dir}/images/${slug}.${pendingImage.ext}`,
-        content: pendingImage.base64,
-        encoding: 'base64',
-      });
-    }
+    // Uploads, deletions of removed images, and the body with any provisional
+    // filenames rewritten to their final names.
+    const img = buildSave(slug, f.collection, f.body);
+    const files: FileWrite[] = [...img.writes];
+    // The body can have been rewritten, so put it back where the author sees it.
+    $<HTMLTextAreaElement>('body').value = img.body;
+    renderImages();
 
     const data: Record<string, unknown> = {
       title: f.title,
@@ -324,12 +479,16 @@ async function save(draft: boolean) {
       draft,
       source: 'original',
     };
-    if (cover) { data.cover = cover; data.coverAlt = ''; }
-    if (f.coverCaption) data.coverCaption = f.coverCaption;
+    if (img.cover) {
+      data.cover = img.cover;
+      data.coverAlt = img.coverAlt;
+      if (img.coverCaption) data.coverCaption = img.coverCaption;
+    }
+    if (img.gallery.length) data.gallery = img.gallery;
     if (f.collection === 'writing') { data.form = f.form; if (f.note) data.note = f.note; }
     if (f.collection === 'travel' && f.location) data.location = { name: f.location };
 
-    files.push({ path: mdPath, content: buildMarkdown(data, f.body) });
+    files.push({ path: mdPath, content: buildMarkdown(data, img.body) });
 
     // Renaming the slug on an edit must remove the old file, or the site ends
     // up serving both URLs.
@@ -346,8 +505,6 @@ async function save(draft: boolean) {
 
     try { localStorage.removeItem(draftKey()); } catch {}
     editingPath = mdPath;
-    existingCover = cover;
-    pendingImage = null;
 
     setStatus(
       statusEl,
@@ -379,9 +536,10 @@ $('delete-btn').addEventListener('click', async () => {
   if (!editingPath) return;
   if (!confirm('Delete this post? It stays in the git history, so it can be recovered.')) return;
   const files: FileWrite[] = [{ path: editingPath, content: null }];
-  if (existingCover) {
-    files.push({ path: editingPath.replace(/\/[^/]+\.md$/, '') + '/' + existingCover.replace('./', ''), content: null });
-  }
+  // Every image the post referenced, not only the cover: a gallery of twenty
+  // used to be left behind in the repository when the entry was deleted.
+  const collection = editingPath.split('/')[2];
+  for (const path of allPaths(collection)) files.push({ path, content: null });
   try {
     await commitFiles(files, `Delete: ${$<HTMLInputElement>('title').value}`,
       (s) => setStatus(statusEl, s, 'busy'));
@@ -405,6 +563,8 @@ interface Row {
   imported: boolean;
   excerpt: string;
   cover?: string;
+  /** Relative paths of every image the entry references. */
+  images?: string[];
   /** Was missing from this interface, so fetchRows never copied it and the
    *  #known-tags datalist has been empty since it was written. */
   tags: string[];
@@ -460,6 +620,13 @@ async function fetchRows(treeKey: string, onProgress: (done: number, total: numb
       // the whole body — up to ~15 KB — and then kept 140 characters of it.
       excerpt: (data.excerpt ?? body ?? '').slice(0, 400).replace(/\s+/g, ' ').trim().slice(0, 140),
       cover: data.cover,
+      // Every image the entry references, so deleting it can take its
+      // photographs with it rather than orphaning a whole gallery.
+      images: [
+        data.cover,
+        ...((data.gallery ?? []) as any[]).map((g) => g?.src),
+        ...[...String(body).matchAll(/!\[[^\]]*\]\((\.\/images\/[^)\s"]+)/g)].map((m) => m[1]),
+      ].filter((x): x is string => typeof x === 'string' && x.startsWith('./images/')),
       tags: Array.isArray(data.tags) ? data.tags : [],
     } as Row;
   });
@@ -627,7 +794,7 @@ async function setDraft(targets: Row[], draft: boolean) {
   }
 }
 
-/** Delete one or many posts, with their cover images, in a single commit. */
+/** Delete one or many posts, with all their images, in a single commit. */
 async function removeRows(targets: Row[]) {
   if (!targets.length) return;
   const what = targets.length === 1 ? `“${targets[0].title}”` : `${targets.length} posts`;
@@ -638,10 +805,10 @@ async function removeRows(targets: Row[]) {
     const files: FileWrite[] = [];
     for (const r of targets) {
       files.push({ path: r.path, content: null });
-      if (r.cover) {
-        // cover is "./images/x.webp" relative to the entry file
-        const dir = r.path.replace(/\/[^/]+\.md$/, '');
-        files.push({ path: `${dir}/${r.cover.replace(/^\.\//, '')}`, content: null });
+      // Paths are "./images/x.webp", relative to the entry file.
+      const dir = r.path.replace(/\/[^/]+\.md$/, '');
+      for (const rel of new Set(r.images ?? (r.cover ? [r.cover] : []))) {
+        files.push({ path: `${dir}/${rel.replace(/^\.\//, '')}`, content: null });
       }
     }
 
@@ -683,9 +850,8 @@ async function openForEdit(path: string) {
     const { data, body } = splitMarkdown(raw);
 
     editingPath = path;
-    existingCover = data.cover ?? null;
-    pendingImage = null;
     slugTouched = true;
+    loadFromPost(data, body, path.split('/')[2]);
 
     writeForm({
       collection: path.split('/')[2] as Collection,
@@ -696,18 +862,19 @@ async function openForEdit(path: string) {
       date: data.date ? String(data.date).slice(0, 10) : '',
       dateNote: data.dateNote ?? '',
       location: data.location?.name ?? '',
-      coverCaption: data.coverCaption ?? '',
       excerpt: data.excerpt ?? '',
       tags: (data.tags ?? []).join(', '),
       body,
       note: data.note ?? '',
     });
 
+    renderImages();
     $('editor-title').textContent = data.title ?? 'Edit post';
     $('delete-btn').hidden = false;
-    $('image-info').textContent = existingCover
-      ? `Keeping the current image. Choose a file to replace it.`
-      : 'Resized automatically before upload — pick the full-size photo.';
+    const n = getImages().length;
+    $('image-info').textContent = n
+      ? `${n} image${n === 1 ? '' : 's'} on this post. Add more, reorder them, or remove any.`
+      : 'Pick as many as you like at once.';
 
     (document.querySelector('[data-view="editor"]') as HTMLButtonElement).click();
     setStatus(statusEl, '', '');
